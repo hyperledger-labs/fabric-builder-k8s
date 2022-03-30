@@ -2,7 +2,13 @@
 
 package builder
 
-import "errors"
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/otiai10/copy"
+)
 
 type Build struct {
 	ChaincodeSourceDirectory   string
@@ -10,6 +16,18 @@ type Build struct {
 	BuildOutputDirectory       string
 }
 
-func (d *Build) Run() error {
-	return errors.New("not implemented yet")
+func (b *Build) Run() error {
+	imageSrcPath := filepath.Join(b.ChaincodeSourceDirectory, "image.json")
+	imageDestPath := filepath.Join(b.BuildOutputDirectory, "image.json")
+	err := copy.Copy(imageSrcPath, imageDestPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error copying %s to %s: %s\n", imageSrcPath, imageDestPath, err)
+		return err
+	}
+
+	// TODO copy any META-INF
+	// metainfSrcPath := filepath.Clean(filepath.Join(sourceDir, "META-INF"))
+	// metainfDestPath := filepath.Clean(filepath.Join(outputDir, "META-INF"))
+
+	return nil
 }
