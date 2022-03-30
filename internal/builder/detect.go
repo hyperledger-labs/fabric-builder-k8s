@@ -24,14 +24,14 @@ func (d *Detect) Run() error {
 	mdpath := filepath.Join(d.ChaincodeMetadataDirectory, "metadata.json")
 	mdbytes, err := ioutil.ReadFile(mdpath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading file %s: %s", mdpath, err)
+		fmt.Fprintf(os.Stderr, "Error reading file %s: %s\n", mdpath, err)
 		return err
 	}
 
 	var metadata metadata
 	err = json.Unmarshal(mdbytes, &metadata)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading json %s: %s", mdpath, err)
+		fmt.Fprintf(os.Stderr, "Error reading json %s: %s\n", mdpath, err)
 		return err
 	}
 
