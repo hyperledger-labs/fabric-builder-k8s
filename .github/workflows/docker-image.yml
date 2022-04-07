@@ -16,12 +16,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build Docker image
-      run: docker build . --file Dockerfile --tag ghcr.io/hyperledgendary/k8s-fabric-peer:$(date +%s)
+      run: docker build . --file Dockerfile --tag ghcr.io/hyperledgendary/k8s-fabric-peer:${GITHUB_SHA}
     - name: Publish Docker image
       if: github.event_name != 'pull_request'
       run: |
         echo ${DOCKER_PW} | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
-        docker push ghcr.io/hyperledgendary/k8s-fabric-peer:latest
+        docker push ghcr.io/hyperledgendary/k8s-fabric-peer:${GITHUB_SHA}
       env:
         DOCKER_USER: ${{ github.actor }}
         DOCKER_PW: ${{ secrets.GITHUB_TOKEN }}
