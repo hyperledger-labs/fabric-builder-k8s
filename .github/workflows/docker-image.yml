@@ -3,6 +3,7 @@ name: Docker Image CI
 on:
   push:
     branches: [ main ]
+    tags: [ v* ]
   pull_request:
     branches: [ main ]
 
@@ -14,5 +15,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag k8s-fabric-peer:$(date +%s)
+    - name: Build Docker image
+      run: docker build . --file Dockerfile --tag ghcr.io/hyperledgendary/k8s-fabric-peer:$(date +%s)
+    - name: Publish Docker image
+      if: github.event_name != 'pull_request'
+      run: |
+        echo ${DOCKER_PW} | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
+        docker push ghcr.io/hyperledgendary/k8s-fabric-peer:latest
+      env:
+        DOCKER_USER: ${{ github.actor }}
+        DOCKER_PW: ${{ secrets.GITHUB_TOKEN }}
