@@ -46,9 +46,84 @@ Create the final chaincode package archive.
 tar -czf sample-k8s-cc.tar.gz metadata.json code.tar.gz
 ```
 
-## Chaincode install
+## Service user role (TBC!)
 
 Set up a [k8s test network](https://github.com/hyperledger/fabric-samples/tree/main/test-network-k8s).
+
+Create a role (cut this down to what is actually required!)
+
+```shell
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cc-role
+  namespace: test-network
+rules:
+  - apiGroups:
+        - ""
+        - apps
+        - autoscaling
+        - batch
+        - extensions
+        - policy
+        - rbac.authorization.k8s.io
+    resources:
+      - pods
+      - componentstatuses
+      - configmaps
+      - daemonsets
+      - deployments
+      - events
+      - endpoints
+      - horizontalpodautoscalers
+      - ingress
+      - jobs
+      - limitranges
+      - namespaces
+      - nodes
+      - pods
+      - persistentvolumes
+      - persistentvolumeclaims
+      - resourcequotas
+      - replicasets
+      - replicationcontrollers
+      - serviceaccounts
+      - services
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+EOF
+```
+
+Create a role binding
+
+```shell
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cc-rolebinding
+  namespace: test-network 
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cc-role 
+subjects:
+- namespace: test-network 
+  kind: ServiceAccount
+  name: default 
+EOF
+```
+
+Check it worked!
+
+```shell
+kubectl auth can-i create deployments --namespace test-network --as system:serviceaccount:test-network:default
+```
+
+## Chaincode install
+
 In the `fabric-samples/test-network-k8s` directory...
 
 Configure the `peer` command environment, e.g. for org1, peer1

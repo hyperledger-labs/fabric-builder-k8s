@@ -92,8 +92,8 @@ func (r *Run) Run() error {
 	if err != nil {
 		panic(err.Error())
 	}
-	// TODO use namespace from env var?
-	deploymentsClient := clientset.AppsV1().Deployments(apiv1.NamespaceDefault)
+	// TODO use namespace from env var instead of "test-network"
+	deploymentsClient := clientset.AppsV1().Deployments("test-network")
 
 	// TODO read in a deployment YAML if specified?
 	deployment := &appsv1.Deployment{
