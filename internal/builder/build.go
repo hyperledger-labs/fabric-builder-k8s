@@ -26,8 +26,8 @@ func (b *Build) Run() error {
 	}
 
 	// TODO copy any META-INF
-	// metainfSrcPath := filepath.Clean(filepath.Join(sourceDir, "META-INF"))
-	// metainfDestPath := filepath.Clean(filepath.Join(outputDir, "META-INF"))
+	// metainfSrcPath := filepath.Join(b.ChaincodeSourceDirectory, "META-INF")
+	// metainfDestPath := filepath.Join(b.BuildOutputDirectory, "META-INF")
 
 	return nil
 }
