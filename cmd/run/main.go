@@ -21,6 +21,8 @@ func main() {
 	}
 
 	if err := run.Run(); err != nil {
+		// TODO better error handling?
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }
