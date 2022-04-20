@@ -8,7 +8,7 @@ The k8s chaincode package contains an image name and tag.
 For example, to create a basic k8s chaincode package using the `pkgk8scc.sh` helper script.
 
 ```shell
-pkgk8scc.sh -l sample -n ghcr.io/hyperledger/asset-transfer-basic -t 1.0
+pkgk8scc.sh -l sample -n ghcr.io/hyperledgendary/fabric-ccaas-asset-transfer-basic -t latest
 ```
 
 You can also create the same chaincode package manually.
