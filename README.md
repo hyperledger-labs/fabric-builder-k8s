@@ -101,6 +101,10 @@ peer lifecycle chaincode install sample.tgz
 ```shell
 export PACKAGE_ID=sample:...
 ```
+or 
+```shell
+export PACKAGE_ID=sample:$(shasum -a 256 sample.tgz  | tr -s ' ' | cut -d ' ' -f 1)
+```
 
 Approve the chaincode
 
