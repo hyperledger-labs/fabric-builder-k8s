@@ -1,0 +1,3 @@
+resources:
+  - org1-deploy-builder-job.yaml
+  - org2-deploy-builder-job.yaml

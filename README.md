@@ -2,6 +2,39 @@
 
 Proof of concept Fabric builder for Kubernetes
 
+
+## Deployment
+
+Set up a [k8s test network](https://github.com/hyperledger/fabric-samples/tree/main/test-network-k8s):
+
+1. Configure the external builder in kube/org[1,2]/core.yaml:
+```
+    externalBuilders:
+      - name: k8s_builder
+        path: /var/hyperledger/fabric/external_builders/k8s_builder
+        propagateEnvironment:
+          - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG
+```
+2. `network kind`
+3. `network up && network channel create`
+
+Deploy the fabric-builder-k8s.  
+
+This will create a role-binding, allowing the default service account to create 
+Pods, Deployments, and Services in the kube namespace.  In addition, the kustomization creates two jobs to 
+copy the k8s_builder binaries from the Docker image into the org-specific persistent volume mount.
+```
+kubectl kustomize config/default | kubectl apply -f - 
+```
+
+## Docker image 
+
+```
+docker build -t ghcr.io/hyperledgendary/fabric-builder-k8s . 
+
+kind load docker-image ghcr.io/hyperledgendary/fabric-builder-k8s 
+```
+
 ## Chaincode package
 
 The k8s chaincode package contains an image name and tag.
@@ -44,82 +77,6 @@ Create the final chaincode package archive.
 
 ```shell
 tar -czf sample-k8s-cc.tar.gz metadata.json code.tar.gz
-```
-
-## Service user role (TBC!)
-
-Set up a [k8s test network](https://github.com/hyperledger/fabric-samples/tree/main/test-network-k8s).
-
-Create a role (cut this down to what is actually required!)
-
-```shell
-cat <<EOF | kubectl apply -f -
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: cc-role
-  namespace: test-network
-rules:
-  - apiGroups:
-        - ""
-        - apps
-        - autoscaling
-        - batch
-        - extensions
-        - policy
-        - rbac.authorization.k8s.io
-    resources:
-      - pods
-      - componentstatuses
-      - configmaps
-      - daemonsets
-      - deployments
-      - events
-      - endpoints
-      - horizontalpodautoscalers
-      - ingress
-      - jobs
-      - limitranges
-      - namespaces
-      - nodes
-      - pods
-      - persistentvolumes
-      - persistentvolumeclaims
-      - resourcequotas
-      - replicasets
-      - replicationcontrollers
-      - serviceaccounts
-      - services
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-EOF
-```
-
-Create a role binding
-
-```shell
-cat <<EOF | kubectl apply -f -
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: cc-rolebinding
-  namespace: test-network 
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: cc-role 
-subjects:
-- namespace: test-network 
-  kind: ServiceAccount
-  name: default 
-EOF
-```
-
-Check it worked!
-
-```shell
-kubectl auth can-i create deployments --namespace test-network --as system:serviceaccount:test-network:default
 ```
 
 ## Chaincode install

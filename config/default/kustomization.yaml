@@ -1,0 +1,7 @@
+# Adds namespace to all resources.
+namespace: test-network
+
+bases:
+  - ../rbac
+  - ../jobs
+
