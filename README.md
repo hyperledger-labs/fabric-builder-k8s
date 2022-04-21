@@ -14,6 +14,8 @@ Set up a [k8s test network](https://github.com/hyperledger/fabric-samples/tree/m
         path: /var/hyperledger/fabric/external_builders/k8s_builder
         propagateEnvironment:
           - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG
+          - KUBERNETES_SERVICE_HOST
+          - KUBERNETES_SERVICE_PORT
 ```
 2. `network kind`
 3. `network up && network channel create`
