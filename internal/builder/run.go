@@ -10,11 +10,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 )
 
 // chaincode represents the chaincode.json file that is supplied by Fabric in
@@ -37,13 +36,15 @@ type image struct {
 type Run struct {
 	BuildOutputDirectory string
 	RunMetadataDirectory string
+	PeerID               string
+	KubeconfigPath       string
+	KubeNamespace        string
 }
 
 func (r *Run) Run() error {
 	imageJsonPath := filepath.Join(r.BuildOutputDirectory, "/image.json")
 	chaincodeJsonPath := filepath.Join(r.RunMetadataDirectory, "/chaincode.json")
 
-	// Read the image.json file
 	fmt.Println("Reading image.json...")
 	_, err := os.Stat(imageJsonPath)
 	if err != nil {
@@ -62,67 +63,95 @@ func (r *Run) Run() error {
 
 	fmt.Fprintf(os.Stdout, "Image name: %s\nImage tag: %s\n", imageData.Name, imageData.Tag)
 
-	// Read the chaincode.json file
 	fmt.Println("Reading chaincode.json...")
 	_, err = os.Stat(chaincodeJsonPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to access chaincode.json: %v", err)
 	}
 
 	chaincodeJsonContents, err := ioutil.ReadFile(chaincodeJsonPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to read chaincode.json: %v", err)
 	}
 
 	var chaincodeData chaincode
 	if err := json.Unmarshal(chaincodeJsonContents, &chaincodeData); err != nil {
-		fmt.Errorf(err.Error())
-		return err
+		return fmt.Errorf("unable to process chaincode.json: %v", err)
 	}
 
 	fmt.Fprintf(os.Stdout, "Chaincode ID: %s", chaincodeData.ChaincodeID)
 
-	// creates the in-cluster config
-	config, err := rest.InClusterConfig()
+	clientset, err := util.GetKubeClientset(r.KubeconfigPath)
 	if err != nil {
-		panic(err.Error())
+		return fmt.Errorf("unable to connect kubernetes client: %v", err)
 	}
-	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-	// TODO use namespace from env var instead of "test-network"
-	deploymentsClient := clientset.AppsV1().Deployments("test-network")
 
-	// TODO read in a deployment YAML if specified?
+	deploymentsClient := clientset.AppsV1().Deployments(r.KubeNamespace)
+
+	ApplicationName := r.PeerID + "-cc-" + chaincodeData.ChaincodeID
+	ChaincodeImage := imageData.Name + ":" + imageData.Tag
+
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			// TODO unique name!
-			Name: "chaincode-deployment",
+			Name: ApplicationName,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: int32Ptr(2),
-			// TODO labels?
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": "demo",
+					"app": ApplicationName,
 				},
 			},
-			// TODO??
 			Template: apiv1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"app": "demo",
+						"app": ApplicationName,
 					},
 				},
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name: "chaincode",
-							// TODO use imageData!
-							Image: "nginx:1.12",
+							Name:  "main",
+							Image: ChaincodeImage,
 							// TODO ports, env, etc.
+							Env: []apiv1.EnvVar{
+								{
+									Name:  "CORE_CHAINCODE_ID_NAME",
+									Value: chaincodeData.ChaincodeID,
+								},
+								{
+									Name:  "CORE_PEER_ADDRESS",
+									Value: chaincodeData.PeerAddress,
+								},
+								// {
+								// 	Name: "CORE_PEER_TLS_ENABLED",
+								// 	Value: "true",
+								// },
+								// {
+								// 	Name: "CORE_PEER_TLS_ROOTCERT_FILE",
+								// 	Value: "/certs/peer.crt",
+								// },
+								// {
+								// 	Name: "CORE_TLS_CLIENT_KEY_PATH",
+								// 	Value: "/certs/client.key",
+								// },
+								// {
+								// 	Name: "CORE_TLS_CLIENT_CERT_PATH",
+								// 	Value: "/certs/client.crt",
+								// },
+								// {
+								// 	Name: "CORE_TLS_CLIENT_KEY_FILE",
+								// 	Value: "/certs/client_pem.key",
+								// },
+								// {
+								// 	Name: "CORE_TLS_CLIENT_CERT_FILE",
+								// 	Value: "/certs/client_pem.crt",
+								// },
+								// {
+								// 	Name: "CORE_PEER_LOCALMSPID",
+								// 	Value: os.Getenv("CORE_PEER_LOCALMSPID")
+								// },
+							},
 							Ports: []apiv1.ContainerPort{
 								{
 									Name:          "http",
@@ -141,7 +170,7 @@ func (r *Run) Run() error {
 	fmt.Println("Creating deployment...")
 	result, err := deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("unable to create kubernetes deployment: %v", err)
 	}
 	fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName())
 
