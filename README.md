@@ -20,6 +20,8 @@ The org1 and org2 `core.yaml` files also need to be updated with the k8s builder
     - name: k8s_builder
       path: /opt/hyperledger/k8s_builder
       propagateEnvironment:
+        - CORE_PEER_ID
+        - KUBE_NAMESPACE
         - KUBERNETES_SERVICE_HOST
         - KUBERNETES_SERVICE_PORT
 ```
@@ -28,8 +30,8 @@ You can use [yq](https://mikefarah.gitbook.io/yq/) to update the `core.yaml` fil
 Make sure you are in the `fabric-samples/test-network-k8s` directory before running the following commands.
 
 ```shell
-yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org1/core.yaml
-yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org2/core.yaml
+yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBE_NAMESPACE", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org1/core.yaml
+yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBE_NAMESPACE", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org2/core.yaml
 ```
 
 After launching the k8s test network using the `./network up` command, you also need to configure a k8s service user role to allow the k8s builder to create chaincode deployments.
@@ -112,7 +114,7 @@ The k8s chaincode package contains an image name and tag.
 For example, to create a basic k8s chaincode package using the `pkgk8scc.sh` helper script.
 
 ```shell
-pkgk8scc.sh -l sample-k8s-cc -n ghcr.io/hyperledger/asset-transfer-basic -t 1.0
+pkgk8scc.sh -l conga-nft-contract -n ghcr.io/hyperledgendary/conga-nft-contract -t a39462eda73e618c153ad6776528f4c7a823f44f
 ```
 
 You can also create the same chaincode package manually.
@@ -121,8 +123,8 @@ Start by creating an `image.json` file.
 ```shell
 cat << IMAGEJSON-EOF > image.json
 {
-  "name": "ghcr.io/hyperledger/asset-transfer-basic",
-  "tag": "1.0"
+  "name": "ghcr.io/hyperledgendary/conga-nft-contract",
+  "tag": "a39462eda73e618c153ad6776528f4c7a823f44f"
 }
 IMAGEJSON-EOF
 ```
@@ -139,7 +141,7 @@ Create a `metadata.json` file for the chaincode package.
 cat << METADATAJSON-EOF > metadata.json
 {
     "type": "k8s",
-    "label": "sample"
+    "label": "conga-nft-contract"
 }
 METADATAJSON-EOF
 ```
@@ -147,7 +149,7 @@ METADATAJSON-EOF
 Create the final chaincode package archive.
 
 ```shell
-tar -czf sample-k8s-cc.tgz metadata.json code.tar.gz
+tar -czf conga-nft-contract.tgz metadata.json code.tar.gz
 ```
 ## Chaincode install
 
@@ -165,13 +167,13 @@ export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/build/channel-msp/peerOrganizations/or
 Install the chaincode package
 
 ```shell
-peer lifecycle chaincode install sample-k8s-cc.tgz
+peer lifecycle chaincode install conga-nft-contract.tgz
 ```
 
 Export a `PACKAGE_ID` environment variable for use in the following commands
 
 ```shell
-export PACKAGE_ID=sample:$(shasum -a 256 sample-k8s-cc.tgz  | tr -s ' ' | cut -d ' ' -f 1)
+export PACKAGE_ID=conga-nft-contract:$(shasum -a 256 conga-nft-contract.tgz  | tr -s ' ' | cut -d ' ' -f 1)
 ```
 
 Note: this should match the chaincode code package identifier shown by the `peer lifecycle chaincode install` command
@@ -182,7 +184,7 @@ Approve the chaincode
 peer lifecycle \
   chaincode approveformyorg \
   --channelID     mychannel \
-  --name          sample \
+  --name          conga-nft-contract \
   --version       1 \
   --package-id    ${PACKAGE_ID} \
   --sequence      1 \
@@ -196,7 +198,7 @@ Commit the chaincode
 peer lifecycle \
   chaincode commit \
   --channelID     mychannel \
-  --name          sample \
+  --name          conga-nft-contract \
   --version       1 \
   --sequence      1 \
   --orderer       org0-orderer1.${TEST_NETWORK_DOMAIN:-vcap.me}:443 \
@@ -206,7 +208,7 @@ peer lifecycle \
 Configure the `network` script to use the new chaincode
 
 ```shell
-export TEST_NETWORK_CHAINCODE_NAME=sample
+export TEST_NETWORK_CHAINCODE_NAME=conga-nft-contract
 ```
 
 Query the chaincode metadata!
