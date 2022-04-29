@@ -2,6 +2,8 @@
 
 Proof of concept Fabric builder for Kubernetes
 
+Status: it should just about work now but there are a few issues to iron out (and tests to write) before it's properly usable!
+
 ## Deploying with k8s test network
 
 The k8s builder can be used with the [k8s test network](https://github.com/hyperledger/fabric-samples/tree/main/test-network-k8s).
@@ -34,9 +36,26 @@ yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyp
 yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBE_NAMESPACE", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org2/core.yaml
 ```
 
+_TODO: is there a better way to do this? E.g. get the peer's namespace (if possible) and default to that?_
+
+The `org1-peer1.yaml`, `org1-peer2.yaml`, `org2-peer1.yaml`, and `org2-peer2.yaml` files need updating to include a `KUBE_NAMESPACE` environment varaiable set to `test-network`.
+
+```
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: org1-peer1-config
+data:
+  KUBE_NAMESPACE: test-network
+  FABRIC_CFG_PATH: /var/hyperledger/fabric/config
+  FABRIC_LOGGING_SPEC: "debug:cauthdsl,policies,msp,grpc,peer.gossip.mcs,gossip,leveldbhelper=info"
+  CORE_PEER_TLS_ENABLED: "true"
+```
+
 After launching the k8s test network using the `./network up` command, you also need to configure a k8s service user role to allow the k8s builder to create chaincode deployments.
 
-TODO: Create a role (cut this down to what is actually required!)
+_TODO: Create a role (cut this down to what is actually required!)_
 
 ```shell
 cat <<EOF | kubectl apply -f -
@@ -75,6 +94,7 @@ rules:
       - resourcequotas
       - replicasets
       - replicationcontrollers
+      - secrets
       - serviceaccounts
       - services
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
@@ -106,6 +126,7 @@ And finally, check it worked!
 
 ```shell
 kubectl auth can-i create deployments --namespace test-network --as system:serviceaccount:test-network:default
+kubectl auth can-i create secrets --namespace test-network --as system:serviceaccount:test-network:default
 ```
 
 ## Chaincode package
@@ -114,7 +135,7 @@ The k8s chaincode package contains an image name and tag.
 For example, to create a basic k8s chaincode package using the `pkgk8scc.sh` helper script.
 
 ```shell
-pkgk8scc.sh -l conga-nft-contract -n ghcr.io/hyperledgendary/conga-nft-contract -t a39462eda73e618c153ad6776528f4c7a823f44f
+pkgk8scc.sh -l conga-nft-contract -n ghcr.io/hyperledgendary/conga-nft-contract -t b96d4701d6a04e6109bc51ef1c148a149bfc6200
 ```
 
 You can also create the same chaincode package manually.
@@ -124,7 +145,7 @@ Start by creating an `image.json` file.
 cat << IMAGEJSON-EOF > image.json
 {
   "name": "ghcr.io/hyperledgendary/conga-nft-contract",
-  "tag": "a39462eda73e618c153ad6776528f4c7a823f44f"
+  "tag": "b96d4701d6a04e6109bc51ef1c148a149bfc6200"
 }
 IMAGEJSON-EOF
 ```
@@ -155,7 +176,8 @@ tar -czf conga-nft-contract.tgz metadata.json code.tar.gz
 
 In the `fabric-samples/test-network-k8s` directory...
 
-Configure the `peer` command environment, e.g. for org1, peer1
+Make sure the `build` directory exists, which should be created by the `./network channel create` command.
+Then configure the `peer` command environment, e.g. for org1, peer1
 
 ```shell
 export FABRIC_CFG_PATH=${PWD}/config/org1
@@ -205,14 +227,8 @@ peer lifecycle \
   --tls --cafile  ${PWD}/build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 ```
 
-Configure the `network` script to use the new chaincode
-
-```shell
-export TEST_NETWORK_CHAINCODE_NAME=conga-nft-contract
-```
-
 Query the chaincode metadata!
 
 ```shell
-./network chaincode query '{"Args":["org.hyperledger.fabric:GetMetadata"]}'
+./network chaincode query conga-nft-contract '{"Args":["org.hyperledger.fabric:GetMetadata"]}'
 ```
