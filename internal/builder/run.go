@@ -58,17 +58,17 @@ func (r *Run) Run() error {
 	fmt.Println("Reading image.json...")
 	_, err := os.Stat(imageJsonPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to access image.json: %w", err)
 	}
 
 	imageJsonContents, err := ioutil.ReadFile(imageJsonPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to read image.json: %w", err)
 	}
 
 	var imageData image
 	if err := json.Unmarshal(imageJsonContents, &imageData); err != nil {
-		return err
+		return fmt.Errorf("unable to process image.json: %w", err)
 	}
 
 	fmt.Fprintf(os.Stdout, "Image name: %s\nImage tag: %s\n", imageData.Name, imageData.Tag)
@@ -76,30 +76,30 @@ func (r *Run) Run() error {
 	fmt.Println("Reading chaincode.json...")
 	_, err = os.Stat(chaincodeJsonPath)
 	if err != nil {
-		return fmt.Errorf("unable to access chaincode.json: %v", err)
+		return fmt.Errorf("unable to access chaincode.json: %w", err)
 	}
 
 	chaincodeJsonContents, err := ioutil.ReadFile(chaincodeJsonPath)
 	if err != nil {
-		return fmt.Errorf("unable to read chaincode.json: %v", err)
+		return fmt.Errorf("unable to read chaincode.json: %w", err)
 	}
 
 	var chaincodeData chaincode
 	if err := json.Unmarshal(chaincodeJsonContents, &chaincodeData); err != nil {
-		return fmt.Errorf("unable to process chaincode.json: %v", err)
+		return fmt.Errorf("unable to process chaincode.json: %w", err)
 	}
 
 	fmt.Fprintf(os.Stdout, "Chaincode ID: %s\n", chaincodeData.ChaincodeID)
 
 	clientset, err := util.GetKubeClientset(r.KubeconfigPath)
 	if err != nil {
-		return fmt.Errorf("unable to connect kubernetes client: %v", err)
+		return fmt.Errorf("unable to connect kubernetes client: %w", err)
 	}
 
 	secretsClient := clientset.CoreV1().Secrets(r.KubeNamespace)
 
 	// TODO need better/safer secret name!
-	secretName := r.PeerID + "-secret-" + chaincodeData.ChaincodeID
+	secretName := util.MangleName(r.PeerID + "-secret-" + chaincodeData.ChaincodeID)
 
 	secret := &apiv1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -117,14 +117,14 @@ func (r *Run) Run() error {
 
 	_, err = secretsClient.Create(context.TODO(), secret, metav1.CreateOptions{})
 	if err != nil {
-		return fmt.Errorf("unable to create kubernetes secret: %v", err)
+		return fmt.Errorf("unable to create kubernetes secret: %w", err)
 	}
 	fmt.Printf("Created secret %s\n", secretName)
 
 	deploymentsClient := clientset.AppsV1().Deployments(r.KubeNamespace)
 
 	// TODO need better/safer application name! There are restrictions!
-	applicationName := r.PeerID + "-cc-" + chaincodeData.ChaincodeID
+	applicationName := util.MangleName(r.PeerID + "-cc-" + chaincodeData.ChaincodeID)
 	chaincodeImage := imageData.Name + ":" + imageData.Tag
 
 	deployment := &appsv1.Deployment{
@@ -229,6 +229,8 @@ func (r *Run) Run() error {
 		return fmt.Errorf("unable to create kubernetes deployment: %v", err)
 	}
 	fmt.Printf("Created deployment %s.\n", applicationName)
+
+	// TODO watch deployment events instead of returning?
 
 	return nil
 }
