@@ -4,11 +4,16 @@ package util
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"regexp"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+)
+
+const (
+	namespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 )
 
 var (
@@ -36,6 +41,15 @@ func GetKubeClientset(kubeconfigPath string) (*kubernetes.Clientset, error) {
 	}
 
 	return client, nil
+}
+
+func GetKubeNamespace() (string, error) {
+	namespace, err := ioutil.ReadFile(namespacePath)
+	if err != nil {
+		return "", fmt.Errorf("unable to read namespace from %s: %w", namespacePath, err)
+	}
+
+	return string(namespace), nil
 }
 
 func MangleName(name string) string {
