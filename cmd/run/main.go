@@ -25,10 +25,12 @@ func main() {
 
 	kubeconfigPath := util.GetOptionalEnv("KUBECONFIG_PATH", "")
 
-	kubeNamespace, err := util.GetRequiredEnv("KUBE_NAMESPACE")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Expected KUBE_NAMESPACE environment variable")
-		os.Exit(1)
+	kubeNamespace := util.GetOptionalEnv("KUBE_NAMESPACE", "")
+	if kubeNamespace == "" {
+		kubeNamespace, err = util.GetKubeNamespace()
+		if err != nil {
+			kubeNamespace = "default"
+		}
 	}
 
 	run := &builder.Run{
