@@ -17,15 +17,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	peerID, err := util.GetRequiredEnv("CORE_PEER_ID")
+	peerID, err := util.GetRequiredEnv(util.PeerIdVariable)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Expected CORE_PEER_ID environment variable")
+		fmt.Fprintf(os.Stderr, "Expected %s environment variable\n", util.PeerIdVariable)
 		os.Exit(1)
 	}
 
-	kubeconfigPath := util.GetOptionalEnv("KUBECONFIG_PATH", "")
+	kubeconfigPath := util.GetOptionalEnv(util.KubeconfigPathVariable, "")
 
-	kubeNamespace := util.GetOptionalEnv("KUBE_NAMESPACE", "")
+	kubeNamespace := util.GetOptionalEnv(util.ChaincodeNamespaceVariable, "")
 	if kubeNamespace == "" {
 		kubeNamespace, err = util.GetKubeNamespace()
 		if err != nil {
