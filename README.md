@@ -10,7 +10,7 @@ Status: it should just about work now but there are a few issues to iron out (an
 
 The k8s builder can be run in cluster using the `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT` environment variables, or it can connect using a `KUBECONFIG_PATH` environment variable.
 
-An optional `KUBE_NAMESPACE` can be used to specify the namespace to deploy chaincode to.
+An optional `FABRIC_CHAINCODE_NAMESPACE` can be used to specify the namespace to deploy chaincode to.
 
 A `CORE_PEER_ID` environment variable is also currently required.
 
@@ -22,7 +22,7 @@ External builders are configured in the `core.yaml` file, for example:
       path: /home/peer/ccbuilders/k8s_builder
       propagateEnvironment:
         - CORE_PEER_ID
-        - KUBE_NAMESPACE
+        - FABRIC_CHAINCODE_NAMESPACE
         - KUBERNETES_SERVICE_HOST
         - KUBERNETES_SERVICE_PORT
 ```

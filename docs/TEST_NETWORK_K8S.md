@@ -19,7 +19,6 @@ The org1 and org2 `core.yaml` files also need to be updated with the k8s builder
       path: /opt/hyperledger/k8s_builder
       propagateEnvironment:
         - CORE_PEER_ID
-        - KUBE_NAMESPACE
         - KUBERNETES_SERVICE_HOST
         - KUBERNETES_SERVICE_PORT
 ```
@@ -28,8 +27,8 @@ You can use [yq](https://mikefarah.gitbook.io/yq/) to update the `core.yaml` fil
 Make sure you are in the `fabric-samples/test-network-k8s` directory before running the following commands.
 
 ```shell
-yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBE_NAMESPACE", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org1/core.yaml
-yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBE_NAMESPACE", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org2/core.yaml
+yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org1/core.yaml
+yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org2/core.yaml
 ```
 
 ## Kubernetes permissions

@@ -23,7 +23,7 @@ RUN apk add --no-cache \
 
 RUN wget https://github.com/mikefarah/yq/releases/download/v4.23.1/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
 
-RUN yq 'del(.vm.endpoint) | .chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBE_NAMESPACE", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' ${FABRIC_CFG_PATH}/core.yaml > core.yaml
+RUN yq 'del(.vm.endpoint) | .chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' ${FABRIC_CFG_PATH}/core.yaml > core.yaml
 
 FROM hyperledger/fabric-peer:${HLF_VERSION}
 
