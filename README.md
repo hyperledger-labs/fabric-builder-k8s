@@ -2,11 +2,14 @@
 
 Proof of concept Fabric builder for Kubernetes
 
-Status: it should just about work now but there are a few issues to iron out (and tests to write) before it's properly usable!
+Advantages:
+- prepublished chaincode images avoids compile issues at deploy time
+- standard CI/CD pipelines can be used to publish chaincode images
+- traceability of installed chaincode's implementation (demo uses Git commit hash as image tag)
+
+Status: it _should_ just about work now but there are a few issues to iron out (and tests to write) before it's properly usable!
 
 ## Usage
-
-**Note:** See [Kubernetes Test Network](docs/TEST_NETWORK_K8S.md) for specific instructions for using the builder with the k8s test network.
 
 The k8s builder can be run in cluster using the `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT` environment variables, or it can connect using a `KUBECONFIG_PATH` environment variable.
 
@@ -19,7 +22,7 @@ External builders are configured in the `core.yaml` file, for example:
 ```
   externalBuilders:
     - name: k8s_builder
-      path: /home/peer/ccbuilders/k8s_builder
+      path: /opt/hyperledger/k8s_builder
       propagateEnvironment:
         - CORE_PEER_ID
         - FABRIC_CHAINCODE_NAMESPACE
@@ -29,6 +32,10 @@ External builders are configured in the `core.yaml` file, for example:
 
 See [External Builders and Launchers](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html) for details of Hyperledger Fabric builders.
 
+There are addition docs with more detailed usage instructions for specific Fabric network deployments:
+
+- [Kubernetes Test Network](docs/TEST_NETWORK_K8S.md)
+- [Nano Test Network](docs/TEST_NETWORK_NANO.md)
 ## Chaincode package
 
 The k8s chaincode package must contain an image name and tag.
