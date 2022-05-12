@@ -36,17 +36,37 @@ There are addition docs with more detailed usage instructions for specific Fabri
 
 - [Kubernetes Test Network](docs/TEST_NETWORK_K8S.md)
 - [Nano Test Network](docs/TEST_NETWORK_NANO.md)
+
+## Chaincode Docker image
+
+Unlike the traditional chaincode language support for Go, Java, and Node.js, the k8s builder *does not* build a chaincode Docker image using Docker-in-Docker.
+Instead, a chaincode Docker image must be built and published before it can be used with the k8s builder.
+
+The chaincode will have access to the following environment variables:
+
+- CORE_CHAINCODE_ID_NAME
+- CORE_PEER_ADDRESS
+- CORE_PEER_TLS_ENABLED
+- CORE_PEER_TLS_ROOTCERT_FILE
+- CORE_TLS_CLIENT_KEY_PATH
+- CORE_TLS_CLIENT_CERT_PATH
+- CORE_TLS_CLIENT_KEY_FILE
+- CORE_TLS_CLIENT_CERT_FILE
+- CORE_PEER_LOCALMSPID
+
+See [conga-nft-contract](https://github.com/hyperledgendary/conga-nft-contract) for an example project which publishes a chaincode image using GitHub Actions.
+
 ## Chaincode package
 
-The k8s chaincode package must contain an image name and tag.
-For example, to create a basic k8s chaincode package using the `pkgk8scc.sh` helper script.
+The k8s chaincode package file, which is installed by the `peer lifecycle chaincode install` command, must contain the Docker image name and tag of the chaincode being deployed.
 
-```shell
-pkgk8scc.sh -l conga-nft-contract -n ghcr.io/hyperledgendary/conga-nft-contract -t b96d4701d6a04e6109bc51ef1c148a149bfc6200
-```
+[Fabric chaincode packages](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html#chaincode-packages) are `.tgz` files which contain two files:
 
-You can also create the same chaincode package manually.
-Start by creating an `image.json` file.
+- metadata.json - the chaincode label and type
+- code.tar.gz - source artifacts for the chaincode
+
+To create a k8s chaincode package file, start by creating an `image.json` file.
+For example,
 
 ```shell
 cat << IMAGEJSON-EOF > image.json
@@ -64,6 +84,7 @@ tar -czf code.tar.gz image.json
 ```
 
 Create a `metadata.json` file for the chaincode package.
+For example,
 
 ```shell
 cat << METADATAJSON-EOF > metadata.json
@@ -79,6 +100,18 @@ Create the final chaincode package archive.
 ```shell
 tar -czf conga-nft-contract.tgz metadata.json code.tar.gz
 ```
+
+Ideally the chaincode package should be created in the same CI/CD pipeline which builds the docker image.
+There is an example [package-k8s-chaincode-action](https://github.com/hyperledgendary/package-k8s-chaincode-action) GitHub Action which can create the required k8s chaincode package.
+
+The GitHub Action repository includes a basic shell script which can also be used for automating the process above outside GitHub workflows.
+For example, to create a basic k8s chaincode package using the `pkgk8scc.sh` helper script.
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/hyperledgendary/package-k8s-chaincode-action/main/pkgk8scc.sh -o pkgk8scc.sh && chmod u+x pkgk8scc.sh
+./pkgk8scc.sh -l conga-nft-contract -n ghcr.io/hyperledgendary/conga-nft-contract -t b96d4701d6a04e6109bc51ef1c148a149bfc6200
+```
+
 ## Chaincode deploy
 
 Deploy the chaincode package as usual, starting by installing the k8s chaincode package.
