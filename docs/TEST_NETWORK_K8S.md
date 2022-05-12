@@ -8,7 +8,7 @@ Before following the instructions to set up the k8s test network, it needs to be
 Find the latest [k8s-fabric-peer](https://github.com/hyperledgendary/fabric-builder-k8s/pkgs/container/k8s-fabric-peer) image and export a `TEST_NETWORK_FABRIC_PEER_IMAGE` environment variable, e.g.
 
 ```shell
-export TEST_NETWORK_FABRIC_PEER_IMAGE=ghcr.io/hyperledgendary/k8s-fabric-peer:47ec271bb9d7b31f35bcb5f0bd499835a223c5c6
+export TEST_NETWORK_FABRIC_PEER_IMAGE=ghcr.io/hyperledgendary/k8s-fabric-peer:79ddc9122afe5cd20b66f5ef2f6f6aa9af3a42e9
 ```
 
 The org1 and org2 `core.yaml` files also need to be updated with the k8s builder configuration.
@@ -123,18 +123,29 @@ export CORE_PEER_MSPCONFIGPATH=${PWD}/build/enrollments/org1/users/org1admin/msp
 export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/build/channel-msp/peerOrganizations/org1/msp/tlscacerts/tlsca-signcert.pem
 ```
 
+## Downloading chaincode package
+
+The [conga-nft-contract](https://github.com/hyperledgendary/conga-nft-contract) sample chaincode project publishes a Docker image which the k8s builder can use _and_ a chaincode package file which can be used with the `peer lifecycle chaincode install` command.
+This greatly simplifies the deployment process since everything required has been created by a standard build pipeline upfront outside the Fabric environment.
+
+Download the sample chaincode package using `curl`.
+
+```shell
+curl -fsSL https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.0/conga-nft-contract-v0.1.0.tgz -o conga-nft-contract-v0.1.0.tgz
+```
+
 ## Deploying chaincode
 
 Deploy the chaincode package as usual, starting by installing the k8s chaincode package.
 
 ```shell
-peer lifecycle chaincode install conga-nft-contract.tgz
+peer lifecycle chaincode install conga-nft-contract-v0.1.0.tgz
 ```
 
 Export a `PACKAGE_ID` environment variable for use in the following commands.
 
 ```shell
-export PACKAGE_ID=conga-nft-contract:$(shasum -a 256 conga-nft-contract.tgz  | tr -s ' ' | cut -d ' ' -f 1)
+export PACKAGE_ID=conga-nft-contract:$(shasum -a 256 conga-nft-contract-v0.1.0.tgz  | tr -s ' ' | cut -d ' ' -f 1) && echo $PACKAGE_ID
 ```
 
 Note: this should match the chaincode code package identifier shown by the `peer lifecycle chaincode install` command.

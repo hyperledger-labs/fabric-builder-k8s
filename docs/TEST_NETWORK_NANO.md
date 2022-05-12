@@ -34,18 +34,29 @@ The k8s builder needs a kubeconfig file to access a Kubernetes cluster to deploy
 export KUBECONFIG_PATH=$HOME/.kube/config
 ```
 
+## Downloading chaincode package
+
+The [conga-nft-contract](https://github.com/hyperledgendary/conga-nft-contract) sample chaincode project publishes a Docker image which the k8s builder can use _and_ a chaincode package file which can be used with the `peer lifecycle chaincode install` command.
+This greatly simplifies the deployment process since everything required has been created by a standard build pipeline upfront outside the Fabric environment.
+
+Download the sample chaincode package using `curl`.
+
+```shell
+curl -fsSL https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.0/conga-nft-contract-v0.1.0.tgz -o conga-nft-contract-v0.1.0.tgz
+```
+
 ## Deploying chaincode
 
 Deploy the chaincode package as usual, starting by installing the k8s chaincode package.
 
 ```shell
-peer lifecycle chaincode install conga-nft-contract.tgz
+peer lifecycle chaincode install conga-nft-contract-v0.1.0.tgz
 ```
 
 Export a `PACKAGE_ID` environment variable for use in the following commands.
 
 ```shell
-export PACKAGE_ID=conga-nft-contract:$(shasum -a 256 conga-nft-contract.tgz  | tr -s ' ' | cut -d ' ' -f 1)
+export PACKAGE_ID=conga-nft-contract:$(shasum -a 256 conga-nft-contract-v0.1.0.tgz  | tr -s ' ' | cut -d ' ' -f 1) && echo $PACKAGE_ID
 ```
 
 Note: this should match the chaincode code package identifier shown by the `peer lifecycle chaincode install` command.
