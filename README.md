@@ -72,7 +72,7 @@ For example,
 cat << IMAGEJSON-EOF > image.json
 {
   "name": "ghcr.io/hyperledgendary/conga-nft-contract",
-  "tag": "b96d4701d6a04e6109bc51ef1c148a149bfc6200"
+  "digest": "sha256:b39eb624e9cc7ed3fa70bf7ea27721e266ae56b48992a916165af3a6b2a4f6eb"
 }
 IMAGEJSON-EOF
 ```
@@ -109,7 +109,7 @@ For example, to create a basic k8s chaincode package using the `pkgk8scc.sh` hel
 
 ```shell
 curl -fsSL https://raw.githubusercontent.com/hyperledgendary/package-k8s-chaincode-action/main/pkgk8scc.sh -o pkgk8scc.sh && chmod u+x pkgk8scc.sh
-./pkgk8scc.sh -l conga-nft-contract -n ghcr.io/hyperledgendary/conga-nft-contract -t b96d4701d6a04e6109bc51ef1c148a149bfc6200
+./pkgk8scc.sh -l conga-nft-contract -n ghcr.io/hyperledgendary/conga-nft-contract -d sha256:b39eb624e9cc7ed3fa70bf7ea27721e266ae56b48992a916165af3a6b2a4f6eb
 ```
 
 ## Chaincode deploy
@@ -118,4 +118,10 @@ Deploy the chaincode package as usual, starting by installing the k8s chaincode 
 
 ```shell
 peer lifecycle chaincode install conga-nft-contract.tgz
+```
+
+You can also user the `peer` command to get the chaincode package ID.
+
+```shell
+export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid conga-nft-contract.tgz) && echo $PACKAGE_ID
 ```

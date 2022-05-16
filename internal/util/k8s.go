@@ -63,7 +63,9 @@ func GetKubeNamespace() (string, error) {
 	return string(namespace), nil
 }
 
-func GetChaincodePodObject(chaincodeImage, namespace, peerID string, chaincodeData ChaincodeJson) *apiv1.Pod {
+func GetChaincodePodObject(imageData ImageJson, namespace, peerID string, chaincodeData ChaincodeJson) *apiv1.Pod {
+	chaincodeImage := imageData.Name + "@" + imageData.Digest
+
 	return &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      getPodName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID),
