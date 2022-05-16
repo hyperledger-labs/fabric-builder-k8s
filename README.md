@@ -7,6 +7,9 @@ Advantages:
 - standard CI/CD pipelines can be used to publish chaincode images
 - traceability of installed chaincode's implementation (demo uses Git commit hash as image tag)
 
+The aim is for the builder to work as closely as possible with the [Fabric chaincode lifecycle](https://hyperledger-fabric.readthedocs.io/en/latest/chaincode_lifecycle.html) first, and then make sensible choices for deploying chaincode workloads using Kubernetes within those Fabric constraints.
+The assumption being that there are more people with Kubernetes skills than are familiar with the inner workings of Fabric!
+
 Status: it _should_ just about work now but there are a few issues to iron out (and tests to write) before it's properly usable!
 
 ## Usage
@@ -58,7 +61,7 @@ See [conga-nft-contract](https://github.com/hyperledgendary/conga-nft-contract) 
 
 ## Chaincode package
 
-The k8s chaincode package file, which is installed by the `peer lifecycle chaincode install` command, must contain the Docker image name and tag of the chaincode being deployed.
+The k8s chaincode package file, which is installed by the `peer lifecycle chaincode install` command, must contain the Docker image name and digest of the chaincode being deployed.
 
 [Fabric chaincode packages](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html#chaincode-packages) are `.tgz` files which contain two files:
 
@@ -72,9 +75,16 @@ For example,
 cat << IMAGEJSON-EOF > image.json
 {
   "name": "ghcr.io/hyperledgendary/conga-nft-contract",
-  "digest": "sha256:b39eb624e9cc7ed3fa70bf7ea27721e266ae56b48992a916165af3a6b2a4f6eb"
+  "digest": "sha256:b35962f000d26ad046d4102f22d70a1351692fc69a9ddead89dfa13aefb942a7"
 }
 IMAGEJSON-EOF
+```
+
+Note: the k8s chaincode package file uses digests because these are immutable, unlike tags.
+The docker inspect command can be used to find the digest if required.
+
+```
+docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/hyperledgendary/conga-nft-contract:0bee560018ea932ec4c7ec252134e2506ec6e797 | cut -d'@' -f2
 ```
 
 Create a `code.tar.gz` archive containing the `image.json` file.

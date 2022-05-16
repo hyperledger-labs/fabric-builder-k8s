@@ -8,7 +8,7 @@ Before following the instructions to set up the k8s test network, it needs to be
 Find the latest [k8s-fabric-peer](https://github.com/hyperledgendary/fabric-builder-k8s/pkgs/container/k8s-fabric-peer) image and export a `TEST_NETWORK_FABRIC_PEER_IMAGE` environment variable, e.g.
 
 ```shell
-export TEST_NETWORK_FABRIC_PEER_IMAGE=ghcr.io/hyperledgendary/k8s-fabric-peer:79ddc9122afe5cd20b66f5ef2f6f6aa9af3a42e9
+export TEST_NETWORK_FABRIC_PEER_IMAGE=ghcr.io/hyperledgendary/k8s-fabric-peer:ac2f9c5288292f69aab91e5556c65d5374697466
 ```
 
 The org1 and org2 `core.yaml` files also need to be updated with the k8s builder configuration.
@@ -131,7 +131,7 @@ This greatly simplifies the deployment process since everything required has bee
 Download the sample chaincode package using `curl`.
 
 ```shell
-curl -fsSL https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.0/conga-nft-contract-v0.1.0.tgz -o conga-nft-contract-v0.1.0.tgz
+curl -fsSL https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.1/conga-nft-contract-v0.1.1.tgz -o conga-nft-contract-v0.1.1.tgz
 ```
 
 ## Deploying chaincode
@@ -139,13 +139,13 @@ curl -fsSL https://github.com/hyperledgendary/conga-nft-contract/releases/downlo
 Deploy the chaincode package as usual, starting by installing the k8s chaincode package.
 
 ```shell
-peer lifecycle chaincode install conga-nft-contract-v0.1.0.tgz
+peer lifecycle chaincode install conga-nft-contract-v0.1.1.tgz
 ```
 
 Export a `PACKAGE_ID` environment variable for use in the following commands.
 
 ```shell
-export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid conga-nft-contract.tgz) && echo $PACKAGE_ID
+export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid conga-nft-contract-v0.1.1.tgz) && echo $PACKAGE_ID
 ```
 
 Note: this should match the chaincode code package identifier shown by the `peer lifecycle chaincode install` command.

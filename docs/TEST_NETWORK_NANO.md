@@ -42,7 +42,7 @@ This greatly simplifies the deployment process since everything required has bee
 Download the sample chaincode package using `curl`.
 
 ```shell
-curl -fsSL https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.0/conga-nft-contract-v0.1.0.tgz -o conga-nft-contract-v0.1.0.tgz
+curl -fsSL https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.1/conga-nft-contract-v0.1.1.tgz -o conga-nft-contract-v0.1.1.tgz
 ```
 
 ## Deploying chaincode
@@ -50,13 +50,13 @@ curl -fsSL https://github.com/hyperledgendary/conga-nft-contract/releases/downlo
 Deploy the chaincode package as usual, starting by installing the k8s chaincode package.
 
 ```shell
-peer lifecycle chaincode install conga-nft-contract-v0.1.0.tgz
+peer lifecycle chaincode install conga-nft-contract-v0.1.1.tgz
 ```
 
 Export a `PACKAGE_ID` environment variable for use in the following commands.
 
 ```shell
-export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid conga-nft-contract.tgz) && echo $PACKAGE_ID
+export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid conga-nft-contract-v0.1.1.tgz) && echo $PACKAGE_ID
 ```
 
 Note: this should match the chaincode code package identifier shown by the `peer lifecycle chaincode install` command.
