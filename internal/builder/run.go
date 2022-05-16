@@ -14,12 +14,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// image represents the image.json file from the k8s chaincode tarball
-type image struct {
-	Name string `json:"name"`
-	Tag  string `json:"tag"`
-}
-
 type Run struct {
 	BuildOutputDirectory string
 	RunMetadataDirectory string
@@ -52,12 +46,14 @@ func (r *Run) Run() error {
 		return fmt.Errorf("unable to read image.json: %w", err)
 	}
 
-	var imageData image
+	var imageData util.ChaincodeImage
 	if err := json.Unmarshal(imageJsonContents, &imageData); err != nil {
 		return fmt.Errorf("unable to process image.json: %w", err)
 	}
 
-	fmt.Fprintf(os.Stdout, "Image name: %s\nImage tag: %s\n", imageData.Name, imageData.Tag)
+	fmt.Fprintf(os.Stdout, "Image name:         %s\n", imageData.Name)
+	fmt.Fprintf(os.Stdout, "Image tag:          %s\n", imageData.Tag)
+	fmt.Fprintf(os.Stdout, "Image pull policy:  %s\n", imageData.ImagePullPolicy)
 
 	fmt.Println("Reading chaincode.json...")
 	_, err = os.Stat(chaincodeJsonPath)
@@ -95,8 +91,7 @@ func (r *Run) Run() error {
 
 	podsClient := clientset.CoreV1().Pods(r.KubeNamespace)
 
-	chaincodeImage := imageData.Name + ":" + imageData.Tag
-	pod := util.GetChaincodePodObject(chaincodeImage, r.KubeNamespace, r.PeerID, chaincodeData)
+	pod := util.GetChaincodePodObject(imageData, r.KubeNamespace, r.PeerID, chaincodeData)
 
 	// TODO apply?
 	p, err := podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})

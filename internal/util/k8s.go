@@ -63,7 +63,14 @@ func GetKubeNamespace() (string, error) {
 	return string(namespace), nil
 }
 
-func GetChaincodePodObject(chaincodeImage, namespace, peerID string, chaincodeData ChaincodeJson) *apiv1.Pod {
+func GetChaincodePodObject(chaincodeImage ChaincodeImage, namespace string, peerID string, chaincodeData ChaincodeJson) *apiv1.Pod {
+
+	// Launch the 'latest' image if tag is unspecified
+	image := chaincodeImage.Name
+	if len(chaincodeImage.Tag) > 0 {
+		image = fmt.Sprintf("%s:%s", chaincodeImage.Name, chaincodeImage.Tag)
+	}
+
 	return &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      getPodName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID),
@@ -78,7 +85,8 @@ func GetChaincodePodObject(chaincodeImage, namespace, peerID string, chaincodeDa
 			Containers: []apiv1.Container{
 				{
 					Name:  "main",
-					Image: chaincodeImage,
+					Image: image,
+					ImagePullPolicy: chaincodeImage.ImagePullPolicy,
 					VolumeMounts: []apiv1.VolumeMount{
 						{
 							Name:      "certs",
