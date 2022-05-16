@@ -145,7 +145,7 @@ peer lifecycle chaincode install conga-nft-contract-v0.1.0.tgz
 Export a `PACKAGE_ID` environment variable for use in the following commands.
 
 ```shell
-export PACKAGE_ID=conga-nft-contract:$(shasum -a 256 conga-nft-contract-v0.1.0.tgz  | tr -s ' ' | cut -d ' ' -f 1) && echo $PACKAGE_ID
+export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid conga-nft-contract.tgz) && echo $PACKAGE_ID
 ```
 
 Note: this should match the chaincode code package identifier shown by the `peer lifecycle chaincode install` command.
