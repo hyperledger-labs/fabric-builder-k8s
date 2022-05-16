@@ -12,3 +12,9 @@ type ChaincodeJson struct {
 	RootCert    string `json:"root_cert"`
 	MspID       string `json:"mspid"`
 }
+
+// ImageJson represents the image.json file in the k8s chaincode package
+type ImageJson struct {
+	Name   string `json:"name"`
+	Digest string `json:"digest"`
+}
