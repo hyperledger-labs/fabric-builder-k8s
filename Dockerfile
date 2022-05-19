@@ -27,5 +27,9 @@ RUN yq 'del(.vm.endpoint) | .chaincode.externalBuilders += { "name": "k8s_builde
 
 FROM hyperledger/fabric-peer:${HLF_VERSION}
 
+LABEL org.opencontainers.image.title "K8s Hyperledger Fabric Peer"
+LABEL org.opencontainers.image.description "Hyperledger Fabric Peer with a preconfigured Kubernetes chaincode builder"
+LABEL org.opencontainers.image.source "https://github.com/hyperledgendary/fabric-builder-k8s"
+
 COPY --from=core core.yaml ${FABRIC_CFG_PATH}
 COPY --from=build /go/bin/ /opt/hyperledger/k8s_builder/bin/
