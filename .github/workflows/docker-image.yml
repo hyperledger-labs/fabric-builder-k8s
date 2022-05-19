@@ -16,12 +16,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build Docker image
-      run: docker build . --file Dockerfile --tag ghcr.io/hyperledgendary/k8s-fabric-peer:${GITHUB_SHA}
+      run: |
+        docker build . --file Dockerfile --label "git_commit=${GITHUB_SHA}" --tag k8s-fabric-peer
+        docker tag k8s-fabric-peer ghcr.io/hyperledgendary/k8s-fabric-peer:${GITHUB_SHA}
+        if [ "${GITHUB_REF:0:10}" = "refs/tags/" ]; then
+          docker tag k8s-fabric-peer ghcr.io/hyperledgendary/k8s-fabric-peer:${GITHUB_REF_NAME}
+          docker tag k8s-fabric-peer ghcr.io/hyperledgendary/k8s-fabric-peer:latest
+        fi
     - name: Publish Docker image
       if: github.event_name != 'pull_request'
       run: |
         echo ${DOCKER_PW} | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
         docker push ghcr.io/hyperledgendary/k8s-fabric-peer:${GITHUB_SHA}
+        if [ "${GITHUB_REF:0:10}" = "refs/tags/" ]; then
+          docker push ghcr.io/hyperledgendary/k8s-fabric-peer:${GITHUB_REF_NAME}
+          docker push ghcr.io/hyperledgendary/k8s-fabric-peer:latest
+        fi
       env:
         DOCKER_USER: ${{ github.actor }}
         DOCKER_PW: ${{ secrets.GITHUB_TOKEN }}
