@@ -2,15 +2,30 @@
 
 Proof of concept Fabric builder for Kubernetes
 
+**Status:** the k8s builder _should_ just about work now for basic scenarios but there are a few issues to iron out (and tests to write) before it's fully functional and stable!
+
 Advantages:
+
 - prepublished chaincode images avoids compile issues at deploy time
 - standard CI/CD pipelines can be used to publish chaincode images
 - traceability of installed chaincode's implementation (demo uses Git commit hash as image tag)
 
 The aim is for the builder to work as closely as possible with the [Fabric chaincode lifecycle](https://hyperledger-fabric.readthedocs.io/en/latest/chaincode_lifecycle.html) first, and then make sensible choices for deploying chaincode workloads using Kubernetes within those Fabric constraints.
-The assumption being that there are more people with Kubernetes skills than are familiar with the inner workings of Fabric!
+(The assumption being that there are more people with Kubernetes skills than are familiar with the inner workings of Fabric!)
 
-Status: it _should_ just about work now but there are a few issues to iron out (and tests to write) before it's properly usable!
+For example:
+
+- The contents of the chaincode package must uniquely identify the chaincode that will eventually run.
+
+  In the case of the k8s builder the chaincode is not actually inside the package so, in order not to break the Fabric chaincode lifecycle, the chaincode image must be specified using a `digest`, which is immutable, not a `tag` which can be moved.
+
+  See [Pull an image by digest (immutable identifier)](https://docs.docker.com/engine/reference/commandline/pull/#pull-an-image-by-digest-immutable-identifier) for more details.
+
+- The Fabric peer manages the chaincode process, not Kubernetes.
+
+  Running the chaincode in server mode, i.e. allowing the peer to initiate the gRPC connection, would make it possible to leave Kubernetes to manage the chaincode process by creating a chaincode deployment.
+
+  Unfortunetly due to limitations in Fabric's builder and launcher implementation, that is not possible and the peer expects to control the chaincode process.
 
 ## Usage
 
