@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build Docker image
       run: |
-        docker build . --file Dockerfile --label "git_commit=${GITHUB_SHA}" --tag k8s-fabric-peer
+        docker build . --file Dockerfile --label "org.opencontainers.image.revision=${GITHUB_SHA}" --tag k8s-fabric-peer
         docker tag k8s-fabric-peer ghcr.io/hyperledgendary/k8s-fabric-peer:${GITHUB_SHA}
         if [ "${GITHUB_REF:0:10}" = "refs/tags/" ]; then
           docker tag k8s-fabric-peer ghcr.io/hyperledgendary/k8s-fabric-peer:${GITHUB_REF_NAME}
