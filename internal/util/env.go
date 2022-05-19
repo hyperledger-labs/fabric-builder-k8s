@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	ChaincodeNamespaceVariable = "FABRIC_CHAINCODE_NAMESPACE"
+	builderVariablePrefix      = "FABRIC_K8S_BUILDER_"
+	ChaincodeNamespaceVariable = builderVariablePrefix + "NAMESPACE"
 	KubeconfigPathVariable     = "KUBECONFIG_PATH"
 	PeerIdVariable             = "CORE_PEER_ID"
 )
