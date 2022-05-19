@@ -31,10 +31,10 @@ jobs:
 
     - name: Package
       run: |
-        go build -v ./cmd/build
-        go build -v ./cmd/detect
-        go build -v ./cmd/release
-        go build -v ./cmd/run
+        CGO_ENABLED=0 go build -v ./cmd/build
+        CGO_ENABLED=0 go build -v ./cmd/detect
+        CGO_ENABLED=0 go build -v ./cmd/release
+        CGO_ENABLED=0 go build -v ./cmd/run
         tar -czvf fabric-builder-k8s-${RUNNER_OS}-${RUNNER_ARCH}.tgz build detect release run
 
     - name: Release
