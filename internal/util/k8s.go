@@ -134,7 +134,6 @@ func GetChaincodePodObject(imageData ImageJson, namespace, peerID string, chainc
 					VolumeSource: apiv1.VolumeSource{
 						Secret: &apiv1.SecretVolumeSource{
 							SecretName:  getSecretName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID),
-							DefaultMode: int32Ptr(0400),
 						},
 					},
 				},
@@ -177,5 +176,3 @@ func mangleName(name string) string {
 	// TODO need sensible unique naming scheme for deployments and secrets!
 	return strings.ToLower(mangledRegExp.ReplaceAllString(name, "-")[:63])
 }
-
-func int32Ptr(i int32) *int32 { return &i }
