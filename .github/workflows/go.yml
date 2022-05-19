@@ -35,7 +35,11 @@ jobs:
         CGO_ENABLED=0 go build -v ./cmd/detect
         CGO_ENABLED=0 go build -v ./cmd/release
         CGO_ENABLED=0 go build -v ./cmd/run
-        tar -czvf fabric-builder-k8s-${RUNNER_OS}-${RUNNER_ARCH}.tgz build detect release run
+        tar -czvf fabric-builder-k8s.tgz build detect release run
+
+    - name: Rename package
+      if: startsWith(github.ref, 'refs/tags/')
+      run: mv fabric-builder-k8s.tgz fabric-builder-k8s-${GITHUB_REF_NAME}-${RUNNER_OS}-${RUNNER_ARCH}.tgz
 
     - name: Release
       uses: softprops/action-gh-release@v1
