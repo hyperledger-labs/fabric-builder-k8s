@@ -97,6 +97,15 @@ peer lifecycle \
   --tls --cafile  ${PWD}/build/channel-msp/ordererOrganizations/org0/orderers/org0-orderer1/tls/signcerts/tls-cert.pem
 ```
 
+## Check the Chaincode Flux Capacitor 
+
+... is .. fluxing.  Hello, chaincode pods! 
+
+```shell
+kubectl -n test-network describe pods -l app.kubernetes.io/created-by=fabric-builder-k8s
+```
+
+
 ## Running transactions
 
 Query the chaincode metadata!
