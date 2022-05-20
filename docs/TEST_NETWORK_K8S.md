@@ -1,120 +1,38 @@
 # Kubernetes Test Network
 
-The k8s builder can be used with the [k8s test network](https://github.com/hyperledger/fabric-samples/tree/main/test-network-k8s) by following the instructions below.
+The [Kube Test Network](https://github.com/hyperledger/fabric-samples/tree/main/test-network-k8s) includes support 
+for the k8s builder by setting the `TEST_NETWORK_CHAINCODE_BUILDER="k8s"` environment variable.
 
-## Configure builder
+## Create a Sample Network 
 
-Before following the instructions to set up the k8s test network, it needs to be configured to use the k8s builder peer image.
-Find the latest [k8s-fabric-peer](https://github.com/hyperledgendary/fabric-builder-k8s/pkgs/container/k8s-fabric-peer) image and export a `TEST_NETWORK_FABRIC_PEER_IMAGE` environment variable, e.g.
-
-```shell
-export TEST_NETWORK_FABRIC_PEER_IMAGE=ghcr.io/hyperledgendary/k8s-fabric-peer:ac2f9c5288292f69aab91e5556c65d5374697466
-```
-
-The org1 and org2 `core.yaml` files also need to be updated with the k8s builder configuration.
-
-```
-  externalBuilders:
-    - name: k8s_builder
-      path: /opt/hyperledger/k8s_builder
-      propagateEnvironment:
-        - CORE_PEER_ID
-        - KUBERNETES_SERVICE_HOST
-        - KUBERNETES_SERVICE_PORT
-```
-
-You can use [yq](https://mikefarah.gitbook.io/yq/) to update the `core.yaml` files.
-Make sure you are in the `fabric-samples/test-network-k8s` directory before running the following commands.
+In the `fabric-samples/test-network-k8s` directory:
 
 ```shell
-yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org1/core.yaml
-yq -i '.chaincode.externalBuilders += { "name": "k8s_builder", "path": "/opt/hyperledger/k8s_builder", "propagateEnvironment": [ "CORE_PEER_ID", "KUBERNETES_SERVICE_HOST", "KUBERNETES_SERVICE_PORT" ] }' config/org2/core.yaml
+./network kind 
+./network cluster init
 ```
-
-## Kubernetes permissions
-
-After launching the k8s test network using the `./network up` command, you also need to configure a k8s service user role to allow the k8s builder to create chaincode deployments.
-
-_TODO: Create a role (cut this down to what is actually required!)_
 
 ```shell
-cat <<EOF | kubectl apply -f -
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: fabric-builder-role
-  namespace: test-network
-rules:
-  - apiGroups:
-        - ""
-        - apps
-        - autoscaling
-        - batch
-        - extensions
-        - policy
-        - rbac.authorization.k8s.io
-    resources:
-      - pods
-      - componentstatuses
-      - configmaps
-      - daemonsets
-      - deployments
-      - events
-      - endpoints
-      - horizontalpodautoscalers
-      - ingress
-      - jobs
-      - limitranges
-      - namespaces
-      - nodes
-      - pods
-      - persistentvolumes
-      - persistentvolumeclaims
-      - resourcequotas
-      - replicasets
-      - replicationcontrollers
-      - secrets
-      - serviceaccounts
-      - services
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-EOF
+export TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION="v0.4.0"   # (optional - defaults to v0.4.0)
+export TEST_NETWORK_CHAINCODE_BUILDER="k8s"
 ```
-
-Create a role binding.
 
 ```shell
-cat <<EOF | kubectl apply -f -
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: fabric-builder-rolebinding
-  namespace: test-network 
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: fabric-builder-role 
-subjects:
-- namespace: test-network 
-  kind: ServiceAccount
-  name: default 
-EOF
+./network up
+./network channel create
 ```
 
-And finally, check it worked!
-
+(Check / follow the detailed log file for errors and progress at `network-debug.log`.  E.g. in a separate shell:)
 ```shell
-kubectl auth can-i create deployments --namespace test-network --as system:serviceaccount:test-network:default
-kubectl auth can-i create secrets --namespace test-network --as system:serviceaccount:test-network:default
+tail -f network-debug.log
 ```
 
-## Running peer commands
 
-In the `fabric-samples/test-network-k8s` directory...
+## Set the `peer` CLI environment
 
-Make sure the `build` directory exists, which should be created by the `./network channel create` command.
-Then configure the `peer` command environment, e.g. for org1, peer1
+Make sure the `build` directory exists -- this will be created by `network channel create`. 
+
+Set the `peer` command environment, e.g. for org1, peer1: 
 
 ```shell
 export FABRIC_CFG_PATH=${PWD}/config/org1
@@ -123,34 +41,36 @@ export CORE_PEER_MSPCONFIGPATH=${PWD}/build/enrollments/org1/users/org1admin/msp
 export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/build/channel-msp/peerOrganizations/org1/msp/tlscacerts/tlsca-signcert.pem
 ```
 
-## Downloading chaincode package
+## Download a chaincode package
 
-The [conga-nft-contract](https://github.com/hyperledgendary/conga-nft-contract) sample chaincode project publishes a Docker image which the k8s builder can use _and_ a chaincode package file which can be used with the `peer lifecycle chaincode install` command.
-This greatly simplifies the deployment process since everything required has been created by a standard build pipeline upfront outside the Fabric environment.
+The [conga-nft-contract](https://github.com/hyperledgendary/conga-nft-contract) sample chaincode publishes a 
+Docker image _and_ a chaincode package archive to GitHub for use with the k8s-builder.  Use of a pre-generated package .tgz 
+greatly simplifies the deployment, aligning with standard industry practices for CI/CD and git-ops workflows. 
 
-Download the sample chaincode package using `curl`.
+Download the sample chaincode package: 
 
 ```shell
-curl -fsSL https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.1/conga-nft-contract-v0.1.1.tgz -o conga-nft-contract-v0.1.1.tgz
+curl -fsSL \
+  https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.1/conga-nft-contract-v0.1.1.tgz \
+  -o conga-nft-contract-v0.1.1.tgz
 ```
 
 ## Deploying chaincode
 
-Deploy the chaincode package as usual, starting by installing the k8s chaincode package.
+Install the chaincode archive to a peer and infer the chaincode's PACKAGE_ID: 
 
 ```shell
 peer lifecycle chaincode install conga-nft-contract-v0.1.1.tgz
 ```
 
-Export a `PACKAGE_ID` environment variable for use in the following commands.
-
 ```shell
 export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid conga-nft-contract-v0.1.1.tgz) && echo $PACKAGE_ID
 ```
 
-Note: this should match the chaincode code package identifier shown by the `peer lifecycle chaincode install` command.
+(Note: PACKAGE_ID must match the chaincode identifier displayed by the `peer lifecycle chaincode install` command.)
 
-Approve the chaincode.
+
+Approve the chaincode:
 
 ```shell
 peer lifecycle \
@@ -183,4 +103,14 @@ Query the chaincode metadata!
 
 ```shell
 ./network chaincode query conga-nft-contract '{"Args":["org.hyperledger.fabric:GetMetadata"]}'
+```
+
+## Reset 
+
+Invariably, something in the recipe above will go awry.  Look for additional diagnostics in `network-debug.log` and...
+
+Reset the stage with: 
+
+```shell
+./network down && ./network up && ./network channel create
 ```
