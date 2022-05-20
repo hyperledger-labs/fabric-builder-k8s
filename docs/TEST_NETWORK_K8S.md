@@ -8,13 +8,11 @@ for the k8s builder by setting the `TEST_NETWORK_CHAINCODE_BUILDER="k8s"` enviro
 In the `fabric-samples/test-network-k8s` directory:
 
 ```shell
-./network kind 
-./network cluster init
-```
-
-```shell
 export TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION="v0.4.0"   # (optional - defaults to v0.4.0)
 export TEST_NETWORK_CHAINCODE_BUILDER="k8s"
+
+./network kind 
+./network cluster init
 ```
 
 ```shell
