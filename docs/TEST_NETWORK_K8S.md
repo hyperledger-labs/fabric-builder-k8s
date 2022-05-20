@@ -8,16 +8,18 @@ for the k8s builder by setting the `TEST_NETWORK_CHAINCODE_BUILDER="k8s"` enviro
 In the `fabric-samples/test-network-k8s` directory:
 
 ```shell
+export PATH=$PWD:$PWD/bin:$PATH
+
 export TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION="v0.4.0"   # (optional - defaults to v0.4.0)
 export TEST_NETWORK_CHAINCODE_BUILDER="k8s"
 
-./network kind 
-./network cluster init
+network kind 
+network cluster init
 ```
 
 ```shell
-./network up
-./network channel create
+network up
+network channel create
 ```
 
 (Check / follow the detailed log file for errors and progress at `network-debug.log`.  E.g. in a separate shell:)
@@ -100,7 +102,7 @@ peer lifecycle \
 Query the chaincode metadata!
 
 ```shell
-./network chaincode query conga-nft-contract '{"Args":["org.hyperledger.fabric:GetMetadata"]}'
+network chaincode query conga-nft-contract '{"Args":["org.hyperledger.fabric:GetMetadata"]}'
 ```
 
 ## Reset 
@@ -110,5 +112,5 @@ Invariably, something in the recipe above will go awry.  Look for additional dia
 Reset the stage with: 
 
 ```shell
-./network down && ./network up && ./network channel create
+network down && network up && network channel create
 ```
