@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,15 +22,6 @@ type Run struct {
 	KubeconfigPath       string
 	KubeNamespace        string
 }
-
-const (
-	// Mutual TLS auth client key and cert paths in the chaincode container
-	TLSClientKeyPath      string = "/etc/hyperledger/fabric/client.key"
-	TLSClientCertPath     string = "/etc/hyperledger/fabric/client.crt"
-	TLSClientKeyFile      string = "/etc/hyperledger/fabric/client_pem.key"
-	TLSClientCertFile     string = "/etc/hyperledger/fabric/client_pem.crt"
-	TLSClientRootCertFile string = "/etc/hyperledger/fabric/peer.crt"
-)
 
 func (r *Run) Run() error {
 	imageJsonPath := filepath.Join(r.BuildOutputDirectory, "/image.json")
@@ -78,27 +70,40 @@ func (r *Run) Run() error {
 
 	secretsClient := clientset.CoreV1().Secrets(r.KubeNamespace)
 
-	secret := util.GetChaincodeSecretObject(r.KubeNamespace, r.PeerID, chaincodeData)
+	secret := util.GetChaincodeSecretApplyConfiguration(r.KubeNamespace, r.PeerID, chaincodeData)
 
-	// TODO apply?
-	s, err := secretsClient.Create(context.TODO(), secret, metav1.CreateOptions{})
+	s, err := secretsClient.Apply(context.TODO(), secret, metav1.ApplyOptions{FieldManager: "fabric-builder-k8s"})
 	if err != nil {
 		return fmt.Errorf("unable to create kubernetes secret: %w", err)
 	}
-	fmt.Printf("Created secret %s\n", s.Name)
+	fmt.Printf("Applied secret %s\n", s.Name)
 
 	podsClient := clientset.CoreV1().Pods(r.KubeNamespace)
 
-	pod := util.GetChaincodePodObject(imageData, r.KubeNamespace, r.PeerID, chaincodeData)
+	// TODO check if pod exists already, and delete/restart if it does
 
-	// TODO apply?
+	podName := util.GetPodName(chaincodeData.MspID, r.PeerID, chaincodeData.ChaincodeID)
+
+	pod := util.GetChaincodePodObject(imageData, r.KubeNamespace, podName, r.PeerID, chaincodeData)
+
 	p, err := podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})
 	if err != nil {
-		return fmt.Errorf("unable to create kubernetes pod: %w", err)
+		return fmt.Errorf("unable to create chaincode pod: %w", err)
 	}
 	fmt.Printf("Created pod %s\n", p.Name)
 
-	// TODO watch deployment events instead of returning?
+	_, err = util.WaitForPodRunning(context.TODO(), time.Minute, podsClient, podName, r.KubeNamespace)
+	if err != nil {
+		return fmt.Errorf("error waiting for chaincode pod: %w", err)
+	}
 
-	return nil
+	status, err := util.WaitForPodTermination(context.TODO(), 0, podsClient, podName, r.KubeNamespace)
+	if err != nil {
+		return fmt.Errorf("error waiting for chaincode pod to terminate: %w", err)
+	}
+	if status != nil {
+		return fmt.Errorf("chaincode pod terminated %s: %s", status.Reason, status.Message)
+	}
+
+	return fmt.Errorf("unexpected chaincode pod termination")
 }
