@@ -5,7 +5,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"sync"
 
 	"github.com/hyperledgendary/fabric-builder-k8s/internal/builder"
 	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
@@ -46,9 +45,4 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error running chaincode.\nBuild dir: %s\nRun dir: %s\nError: %v\n", run.BuildOutputDirectory, run.RunMetadataDirectory, err)
 		os.Exit(1)
 	}
-
-	// TODO nasty hack to keep chaincode running- peer assumes chaincode has terminated when builder run terminates!
-	var m sync.Mutex
-	m.Lock()
-	m.Lock()
 }
