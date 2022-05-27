@@ -223,6 +223,7 @@ func GetChaincodePodObject(imageData ImageJson, namespace, podName, peerID strin
 					},
 				},
 			},
+			RestartPolicy: apiv1.RestartPolicyNever,
 			Volumes: []apiv1.Volume{
 				{
 					Name: "certs",

@@ -15,10 +15,44 @@ export TEST_NETWORK_CHAINCODE_BUILDER="k8s"
 
 network kind 
 network cluster init
+network up
+```
+
+Note: the `fabric-builder-role` needs updating when specifying a `TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION` later than `v0.4.0`.
+Use `kubectl` to apply and check the required changes.
+
+```
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: fabric-builder-role
+  namespace: test-network
+rules:
+  - apiGroups:
+      - ""
+      - apps
+    resources:
+      - pods
+      - deployments
+      - configmaps
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - patch
+EOF
+
+kubectl auth can-i list pods --namespace test-network --as system:serviceaccount:test-network:default
+kubectl auth can-i delete pods --namespace test-network --as system:serviceaccount:test-network:default
+kubectl auth can-i patch secrets --namespace test-network --as system:serviceaccount:test-network:default
 ```
 
 ```shell
-network up
 network channel create
 ```
 
