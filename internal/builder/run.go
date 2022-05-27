@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -80,17 +81,45 @@ func (r *Run) Run() error {
 
 	podsClient := clientset.CoreV1().Pods(r.KubeNamespace)
 
-	// TODO check if pod exists already, and delete/restart if it does
-
 	podName := util.GetPodName(chaincodeData.MspID, r.PeerID, chaincodeData.ChaincodeID)
 
 	pod := util.GetChaincodePodObject(imageData, r.KubeNamespace, podName, r.PeerID, chaincodeData)
 
-	p, err := podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})
-	if err != nil {
-		return fmt.Errorf("unable to create chaincode pod: %w", err)
+	createAttempts := 0
+	for {
+		createAttempts += 1
+		p, err := podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})
+		if err != nil {
+			if errors.IsAlreadyExists(err) {
+				if createAttempts > 3 {
+					// give up
+					return fmt.Errorf("unable to create chaincode pod %s/%s on final attempt: %w", r.KubeNamespace, podName, err)
+				}
+
+				err = podsClient.Delete(context.TODO(), podName, metav1.DeleteOptions{})
+				if err != nil {
+					if !errors.IsNotFound(err) {
+						fmt.Fprintf(os.Stderr, "Error deleting existing chaincode pod: %v", err)
+					}
+				}
+
+				_, err := util.WaitForPodTermination(context.TODO(), time.Minute, podsClient, podName, r.KubeNamespace)
+				if err != nil {
+					if !errors.IsNotFound(err) {
+						fmt.Fprintf(os.Stderr, "Error waiting for existing chaincode pod to terminate: %v", err)
+					}
+				}
+
+				// try again
+				continue
+			}
+
+			return fmt.Errorf("unable to create chaincode pod %s/%s: %w", r.KubeNamespace, podName, err)
+		}
+
+		fmt.Printf("Created chaincode pod: %s/%s\n", p.Namespace, p.Name)
+		break
 	}
-	fmt.Printf("Created pod %s\n", p.Name)
 
 	_, err = util.WaitForPodRunning(context.TODO(), time.Minute, podsClient, podName, r.KubeNamespace)
 	if err != nil {
