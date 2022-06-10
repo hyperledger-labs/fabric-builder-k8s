@@ -10,6 +10,7 @@ import (
 const (
 	builderVariablePrefix      = "FABRIC_K8S_BUILDER_"
 	ChaincodeNamespaceVariable = builderVariablePrefix + "NAMESPACE"
+	DebugVariable              = builderVariablePrefix + "DEBUG"
 	KubeconfigPathVariable     = "KUBECONFIG_PATH"
 	PeerIdVariable             = "CORE_PEER_ID"
 )

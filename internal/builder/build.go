@@ -3,10 +3,11 @@
 package builder
 
 import (
+	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
+	"github.com/hyperledgendary/fabric-builder-k8s/internal/log"
 	"github.com/otiai10/copy"
 )
 
@@ -16,13 +17,15 @@ type Build struct {
 	BuildOutputDirectory       string
 }
 
-func (b *Build) Run() error {
+func (b *Build) Run(ctx context.Context) error {
+	logger := log.New(ctx)
+	logger.Debugln("Building chaincode...")
+
 	imageSrcPath := filepath.Join(b.ChaincodeSourceDirectory, "image.json")
 	imageDestPath := filepath.Join(b.BuildOutputDirectory, "image.json")
 	err := copy.Copy(imageSrcPath, imageDestPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error copying %s to %s: %s\n", imageSrcPath, imageDestPath, err)
-		return err
+		return fmt.Errorf("could not copy %s to %s: %w", imageSrcPath, imageDestPath, err)
 	}
 
 	// TODO copy any META-INF

@@ -3,12 +3,14 @@
 package builder
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/hyperledgendary/fabric-builder-k8s/internal/log"
 )
 
 type Detect struct {
@@ -20,19 +22,20 @@ type metadata struct {
 	Type string `json:"type"`
 }
 
-func (d *Detect) Run() error {
+func (d *Detect) Run(ctx context.Context) error {
+	logger := log.New(ctx)
+	logger.Debugln("Checking chaincode type...")
+
 	mdpath := filepath.Join(d.ChaincodeMetadataDirectory, "metadata.json")
 	mdbytes, err := ioutil.ReadFile(mdpath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading file %s: %s\n", mdpath, err)
-		return err
+		return fmt.Errorf("unable to read %s: %w", mdpath, err)
 	}
 
 	var metadata metadata
 	err = json.Unmarshal(mdbytes, &metadata)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading json %s: %s\n", mdpath, err)
-		return err
+		return fmt.Errorf("unable to process %s: %w", mdpath, err)
 	}
 
 	if strings.ToLower(metadata.Type) == "k8s" {

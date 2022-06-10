@@ -7,11 +7,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/hyperledgendary/fabric-builder-k8s/internal/log"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -123,8 +123,8 @@ func WaitForPodTermination(ctx context.Context, timeout time.Duration, podsClien
 // GetKubeClientset returns a client object for a provided kubeconfig filepath
 // if one is provided, or which uses the service account kubernetes gives to
 // pods otherwise
-func GetKubeClientset(kubeconfigPath string) (*kubernetes.Clientset, error) {
-	fmt.Fprintf(os.Stdout, "Creating kube client object for kubeconfigPath %s\n", kubeconfigPath)
+func GetKubeClientset(logger *log.CmdLogger, kubeconfigPath string) (*kubernetes.Clientset, error) {
+	logger.Debugf("Creating kube client object for kubeconfigPath %s", kubeconfigPath)
 
 	kubeconfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	if err != nil {
