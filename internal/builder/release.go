@@ -2,12 +2,21 @@
 
 package builder
 
+import (
+	"context"
+
+	"github.com/hyperledgendary/fabric-builder-k8s/internal/log"
+)
+
 type Release struct {
 	BuildOutputDirectory   string
 	ReleaseOutputDirectory string
 }
 
-func (r *Release) Run() error {
+func (r *Release) Run(ctx context.Context) error {
+	logger := log.New(ctx)
+	logger.Debugln("Releasing chaincode...")
+
 	// TODO is this required?
 	// imageSrcPath := filepath.Join(r.BuildOutputDirectory, "image.json")
 	// imageDestPath := filepath.Join(r.ReleaseOutputDirectory, "image.json")
