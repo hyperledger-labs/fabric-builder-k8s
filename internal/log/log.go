@@ -41,20 +41,19 @@ func (nl *nilLogger) Println(v ...interface{}) {
 }
 
 const (
-	prefix = "fabric-builder-k8s"
-	flags  = log.LUTC | log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile | log.Lmsgprefix
+	flags = 0
 )
 
 func New(ctx context.Context) *CmdLogger {
 	cmd, _ := CmdFromContext(ctx)
 	pid, _ := PidFromContext(ctx)
 
-	infoPrefix := fmt.Sprintf("%s: %s [%v]: ", prefix, cmd, pid)
+	infoPrefix := fmt.Sprintf("%s [%v]: ", cmd, pid)
 	infoLogger := log.New(os.Stderr, infoPrefix, flags)
 
 	var debugLogger minimalLogger
 	if DebugFromContext(ctx) {
-		debugPrefix := fmt.Sprintf("%s [DEBUG]: %s [%v]: ", prefix, cmd, pid)
+		debugPrefix := fmt.Sprintf("%s [%v] DEBUG: ", cmd, pid)
 		debugLogger = log.New(os.Stderr, debugPrefix, flags)
 	} else {
 		debugLogger = &nilLogger{}

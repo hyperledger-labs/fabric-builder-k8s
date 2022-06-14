@@ -43,6 +43,7 @@ External builders are configured in the `core.yaml` file, for example:
       path: /opt/hyperledger/k8s_builder
       propagateEnvironment:
         - CORE_PEER_ID
+        - FABRIC_K8S_BUILDER_DEBUG
         - FABRIC_K8S_BUILDER_NAMESPACE
         - KUBERNETES_SERVICE_HOST
         - KUBERNETES_SERVICE_PORT
