@@ -152,7 +152,7 @@ func GetKubeNamespace() (string, error) {
 	return string(namespace), nil
 }
 
-func GetChaincodePodObject(imageData ImageJson, namespace, podName, peerID string, chaincodeData ChaincodeJson) *apiv1.Pod {
+func GetChaincodePodObject(imageData *ImageJson, namespace, podName, peerID string, chaincodeData *ChaincodeJson) *apiv1.Pod {
 	chaincodeImage := imageData.Name + "@" + imageData.Digest
 
 	return &apiv1.Pod{
@@ -238,7 +238,7 @@ func GetChaincodePodObject(imageData ImageJson, namespace, podName, peerID strin
 	}
 }
 
-func GetChaincodeSecretApplyConfiguration(namespace, peerID string, chaincodeData ChaincodeJson) *applycorev1.SecretApplyConfiguration {
+func GetChaincodeSecretApplyConfiguration(namespace, peerID string, chaincodeData *ChaincodeJson) *applycorev1.SecretApplyConfiguration {
 	name := getSecretName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID)
 
 	annotations := map[string]string{
@@ -270,7 +270,7 @@ func GetChaincodeSecretApplyConfiguration(namespace, peerID string, chaincodeDat
 		WithType(apiv1.SecretTypeOpaque)
 }
 
-func GetChaincodeSecretObject(namespace, peerID string, chaincodeData ChaincodeJson) *apiv1.Secret {
+func GetChaincodeSecretObject(namespace, peerID string, chaincodeData *ChaincodeJson) *apiv1.Secret {
 	return &apiv1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      getSecretName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID),

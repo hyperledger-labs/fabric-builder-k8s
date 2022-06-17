@@ -4,11 +4,7 @@ package builder
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/hyperledgendary/fabric-builder-k8s/internal/log"
@@ -29,45 +25,15 @@ func (r *Run) Run(ctx context.Context) error {
 	logger := log.New(ctx)
 	logger.Debugln("Running chaincode...")
 
-	imageJsonPath := filepath.Join(r.BuildOutputDirectory, "/image.json")
-	logger.Debugf("Reading %s...", imageJsonPath)
-
-	_, err := os.Stat(imageJsonPath)
+	imageData, err := util.ReadImageJson(logger, r.BuildOutputDirectory)
 	if err != nil {
-		return fmt.Errorf("unable to access %s: %w", imageJsonPath, err)
+		return err
 	}
 
-	imageJsonContents, err := ioutil.ReadFile(imageJsonPath)
+	chaincodeData, err := util.ReadChaincodeJson(logger, r.BuildOutputDirectory)
 	if err != nil {
-		return fmt.Errorf("unable to read %s: %w", imageJsonPath, err)
+		return err
 	}
-
-	var imageData util.ImageJson
-	if err := json.Unmarshal(imageJsonContents, &imageData); err != nil {
-		return fmt.Errorf("unable to process %s: %w", imageJsonPath, err)
-	}
-
-	logger.Debugf("Image name: %s\nImage digest: %s\n", imageData.Name, imageData.Digest)
-
-	chaincodeJsonPath := filepath.Join(r.RunMetadataDirectory, "/chaincode.json")
-	logger.Debugf("Reading %s...", chaincodeJsonPath)
-
-	_, err = os.Stat(chaincodeJsonPath)
-	if err != nil {
-		return fmt.Errorf("unable to access %s: %w", chaincodeJsonPath, err)
-	}
-
-	chaincodeJsonContents, err := ioutil.ReadFile(chaincodeJsonPath)
-	if err != nil {
-		return fmt.Errorf("unable to read %s: %w", chaincodeJsonPath, err)
-	}
-
-	var chaincodeData util.ChaincodeJson
-	if err := json.Unmarshal(chaincodeJsonContents, &chaincodeData); err != nil {
-		return fmt.Errorf("unable to process %s: %w", chaincodeJsonPath, err)
-	}
-
-	logger.Debugf("Chaincode ID: %s\n", chaincodeData.ChaincodeID)
 
 	clientset, err := util.GetKubeClientset(logger, r.KubeconfigPath)
 	if err != nil {
