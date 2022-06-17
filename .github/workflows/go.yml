@@ -28,6 +28,8 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+      env:
+        FABRIC_K8S_BUILDER_DEBUG: 'true'
 
     - name: Package
       run: |
