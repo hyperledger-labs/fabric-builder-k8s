@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/hyperledgendary/fabric-builder-k8s/internal/log"
+	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
 )
 
 type Release struct {
@@ -17,18 +18,14 @@ func (r *Release) Run(ctx context.Context) error {
 	logger := log.New(ctx)
 	logger.Debugln("Releasing chaincode...")
 
-	// TODO is this required?
-	// imageSrcPath := filepath.Join(r.BuildOutputDirectory, "image.json")
-	// imageDestPath := filepath.Join(r.ReleaseOutputDirectory, "image.json")
-	// err := copy.Copy(imageSrcPath, imageDestPath)
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "Error copying %s to %s: %s\n", imageSrcPath, imageDestPath, err)
-	// 	return err
-	// }
-
-	// TODO copy any META-INF
-	// metainfSrcPath := filepath.Join(r.BuildOutputDirectory, "META-INF")
-	// metainfDestPath := filepath.Join(r.ReleaseOutputDirectory, "META-INF")
+	// If CouchDB index definitions are required for the chaincode, release is
+	// responsible for placing the indexes into the statedb/couchdb/indexes
+	// directory under RELEASE_OUTPUT_DIR. The indexes must have a .json
+	// extension.
+	err := util.CopyIndexFiles(logger, r.BuildOutputDirectory, r.ReleaseOutputDirectory)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
