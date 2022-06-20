@@ -30,7 +30,7 @@ func (r *Run) Run(ctx context.Context) error {
 		return err
 	}
 
-	chaincodeData, err := util.ReadChaincodeJson(logger, r.BuildOutputDirectory)
+	chaincodeData, err := util.ReadChaincodeJson(logger, r.RunMetadataDirectory)
 	if err != nil {
 		return err
 	}
