@@ -1,7 +1,6 @@
 # Kubernetes Test Network
 
-The [Kube Test Network](https://github.com/hyperledger/fabric-samples/tree/main/test-network-k8s) includes support 
-for the k8s builder by setting the `TEST_NETWORK_CHAINCODE_BUILDER="k8s"` environment variable.
+The [Kube Test Network](https://github.com/hyperledger/fabric-samples/tree/main/test-network-k8s) includes support for the k8s builder by setting the `TEST_NETWORK_CHAINCODE_BUILDER="k8s"` environment variable.
 
 ## Create a Sample Network 
 
@@ -10,49 +9,12 @@ In the `fabric-samples/test-network-k8s` directory:
 ```shell
 export PATH=$PWD:$PWD/bin:$PATH
 
-export TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION="v0.4.0"   # (optional - defaults to v0.4.0)
+export TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION="v0.6.0"   # (optional - defaults to v0.4.0)
 export TEST_NETWORK_CHAINCODE_BUILDER="k8s"
 
 network kind 
 network cluster init
 network up
-```
-
-Note: the `fabric-builder-role` needs updating when specifying a `TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION` later than `v0.4.0`.
-Use `kubectl` to apply and check the required changes.
-
-```
-cat <<EOF | kubectl apply -f -
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: fabric-builder-role
-  namespace: test-network
-rules:
-  - apiGroups:
-      - ""
-      - apps
-    resources:
-      - pods
-      - deployments
-      - configmaps
-      - secrets
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - patch
-EOF
-
-kubectl auth can-i list pods --namespace test-network --as system:serviceaccount:test-network:default
-kubectl auth can-i delete pods --namespace test-network --as system:serviceaccount:test-network:default
-kubectl auth can-i patch secrets --namespace test-network --as system:serviceaccount:test-network:default
-```
-
-```shell
 network channel create
 ```
 
@@ -60,7 +22,6 @@ network channel create
 ```shell
 tail -f network-debug.log
 ```
-
 
 ## Set the `peer` CLI environment
 
