@@ -55,6 +55,7 @@ There are addition docs with more detailed usage instructions for specific Fabri
 
 - [Kubernetes Test Network](docs/TEST_NETWORK_K8S.md)
 - [Nano Test Network](docs/TEST_NETWORK_NANO.md)
+- [Fabric Operator](docs/FABRIC_OPERATOR.md)
 
 ## Chaincode Docker image
 
