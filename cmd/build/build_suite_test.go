@@ -8,6 +8,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+//nolint:gochecknoglobals // not sure how to avoid this
 var buildCmdPath string
 
 func TestBuild(t *testing.T) {

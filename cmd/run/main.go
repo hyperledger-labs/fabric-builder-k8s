@@ -11,32 +11,42 @@ import (
 	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
 )
 
+const (
+	expectedArgsLength      = 3
+	buildOutputDirectoryArg = 1
+	runMetadataDirectoryArg = 2
+)
+
 func main() {
 	debug := util.GetOptionalEnv(util.DebugVariable, "false")
 	ctx := log.NewCmdContext(context.Background(), debug == "true")
 	logger := log.New(ctx)
 
-	if len(os.Args) != 3 {
+	if len(os.Args) != expectedArgsLength {
 		logger.Println("Expected BUILD_OUTPUT_DIR and RUN_METADATA_DIR arguments")
 		os.Exit(1)
 	}
-	buildOutputDirectory := os.Args[1]
-	runMetadataDirectory := os.Args[2]
+
+	buildOutputDirectory := os.Args[buildOutputDirectoryArg]
+	runMetadataDirectory := os.Args[runMetadataDirectoryArg]
+
 	logger.Debugf("Build output directory: %s", buildOutputDirectory)
 	logger.Debugf("Run metadata directory: %s", runMetadataDirectory)
 
-	peerID, err := util.GetRequiredEnv(util.PeerIdVariable)
+	peerID, err := util.GetRequiredEnv(util.PeerIDVariable)
 	if err != nil {
-		logger.Printf("Expected %s environment variable\n", util.PeerIdVariable)
+		logger.Printf("Expected %s environment variable\n", util.PeerIDVariable)
 		os.Exit(1)
 	}
-	logger.Debugf("%s=%s", util.PeerIdVariable, peerID)
+
+	logger.Debugf("%s=%s", util.PeerIDVariable, peerID)
 
 	kubeconfigPath := util.GetOptionalEnv(util.KubeconfigPathVariable, "")
 	logger.Debugf("%s=%s", util.KubeconfigPathVariable, kubeconfigPath)
 
 	kubeNamespace := util.GetOptionalEnv(util.ChaincodeNamespaceVariable, "")
 	logger.Debugf("%s=%s", util.ChaincodeNamespaceVariable, kubeNamespace)
+
 	if kubeNamespace == "" {
 		kubeNamespace, err = util.GetKubeNamespace()
 		if err != nil {

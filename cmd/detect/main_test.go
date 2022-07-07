@@ -22,6 +22,12 @@ var _ = Describe("Main", func() {
 		Entry("When the metadata contents are invalid", 1, "CHAINCODE_SOURCE_DIR", "./testdata/invalidfile"),
 		Entry("When the metadata does not exist", 1, "CHAINCODE_SOURCE_DIR", "CHAINCODE_METADATA_DIR"),
 		Entry("When too few arguments are provided", 1, "CHAINCODE_SOURCE_DIR"),
-		Entry("When too many arguments are provided", 1, "CHAINCODE_SOURCE_DIR", "CHAINCODE_METADATA_DIR", "UNEXPECTED_ARGUMENT"),
+		Entry(
+			"When too many arguments are provided",
+			1,
+			"CHAINCODE_SOURCE_DIR",
+			"CHAINCODE_METADATA_DIR",
+			"UNEXPECTED_ARGUMENT",
+		),
 	)
 })

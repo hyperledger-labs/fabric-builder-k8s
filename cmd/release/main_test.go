@@ -10,7 +10,6 @@ import (
 )
 
 var _ = Describe("Main", func() {
-
 	var tempDir string
 	BeforeEach(func() {
 		tempDir = GinkgoT().TempDir()
@@ -25,9 +24,15 @@ var _ = Describe("Main", func() {
 
 			Eventually(session).Should(gexec.Exit(expectedErrorCode))
 		},
-		Entry("When there is no chaincode metadata", 0, func() []string { return []string{"BUILD_OUTPUT_DIR", "RELEASE_OUTPUT_DIR"} }),
-		Entry("When there is chaincode metadata", 0, func() []string { return []string{"./testdata/buildwithindexes", tempDir} }),
-		Entry("When too few arguments are provided", 1, func() []string { return []string{"BUILD_OUTPUT_DIR"} }),
+		Entry("When there is no chaincode metadata", 0, func() []string {
+			return []string{"BUILD_OUTPUT_DIR", "RELEASE_OUTPUT_DIR"}
+		}),
+		Entry("When there is chaincode metadata", 0, func() []string {
+			return []string{"./testdata/buildwithindexes", tempDir}
+		}),
+		Entry("When too few arguments are provided", 1, func() []string {
+			return []string{"BUILD_OUTPUT_DIR"}
+		}),
 		Entry("When too many arguments are provided", 1, func() []string {
 			return []string{"BUILD_OUTPUT_DIR", "RELEASE_OUTPUT_DIR", "UNEXPECTED_ARGUMENT"}
 		}),
