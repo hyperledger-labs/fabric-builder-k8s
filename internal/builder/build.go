@@ -19,7 +19,7 @@ func (b *Build) Run(ctx context.Context) error {
 	logger := log.New(ctx)
 	logger.Debugln("Building chaincode...")
 
-	err := util.CopyImageJson(logger, b.ChaincodeSourceDirectory, b.BuildOutputDirectory)
+	err := util.CopyImageJSON(logger, b.ChaincodeSourceDirectory, b.BuildOutputDirectory)
 	if err != nil {
 		return err
 	}

@@ -11,17 +11,25 @@ import (
 	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
 )
 
+const (
+	expectedArgsLength        = 3
+	buildOutputDirectoryArg   = 1
+	releaseOutputDirectoryArg = 2
+)
+
 func main() {
 	debug := util.GetOptionalEnv(util.DebugVariable, "false")
 	ctx := log.NewCmdContext(context.Background(), debug == "true")
 	logger := log.New(ctx)
 
-	if len(os.Args) != 3 {
+	if len(os.Args) != expectedArgsLength {
 		logger.Println("Expected BUILD_OUTPUT_DIR and RELEASE_OUTPUT_DIR arguments")
 		os.Exit(1)
 	}
-	buildOutputDirectory := os.Args[1]
-	releaseOutputDirectory := os.Args[2]
+
+	buildOutputDirectory := os.Args[buildOutputDirectoryArg]
+	releaseOutputDirectory := os.Args[releaseOutputDirectoryArg]
+
 	logger.Debugf("Build output directory: %s", buildOutputDirectory)
 	logger.Debugf("Release output directory: %s", releaseOutputDirectory)
 

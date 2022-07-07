@@ -11,9 +11,11 @@ import (
 
 type logContextKeyType string
 
-const cmdKey logContextKeyType = "cmd"
-const debugKey logContextKeyType = "debug"
-const pidKey logContextKeyType = "pid"
+const (
+	cmdKey   logContextKeyType = "cmd"
+	debugKey logContextKeyType = "debug"
+	pidKey   logContextKeyType = "pid"
+)
 
 type minimalLogger interface {
 	Print(v ...interface{})
@@ -52,6 +54,7 @@ func New(ctx context.Context) *CmdLogger {
 	infoLogger := log.New(os.Stderr, infoPrefix, flags)
 
 	var debugLogger minimalLogger
+
 	if DebugFromContext(ctx) {
 		debugPrefix := fmt.Sprintf("%s [%v] DEBUG: ", cmd, pid)
 		debugLogger = log.New(os.Stderr, debugPrefix, flags)
@@ -68,7 +71,7 @@ func New(ctx context.Context) *CmdLogger {
 }
 
 // NewCmdContext returns a new Context with program name, process id, and
-// debug values
+// debug values.
 func NewCmdContext(ctx context.Context, debug bool) context.Context {
 	cmdValue := os.Args[0]
 	cmdContext := context.WithValue(ctx, cmdKey, cmdValue)
@@ -81,23 +84,26 @@ func NewCmdContext(ctx context.Context, debug bool) context.Context {
 	return cmdContext
 }
 
-// CmdFromContext returns the program name value from the provided Context
+// CmdFromContext returns the program name value from the provided Context.
 func CmdFromContext(ctx context.Context) (string, bool) {
 	cmd, ok := ctx.Value(cmdKey).(string)
+
 	return cmd, ok
 }
 
-// PidFromContext returns the process ID value from the provided Context
+// PidFromContext returns the process ID value from the provided Context.
 func PidFromContext(ctx context.Context) (int, bool) {
 	pid, ok := ctx.Value(pidKey).(int)
+
 	return pid, ok
 }
 
-// DebugFromContext returns if debug is enabled in the provided Context
+// DebugFromContext returns if debug is enabled in the provided Context.
 func DebugFromContext(ctx context.Context) bool {
 	if d, ok := ctx.Value(debugKey).(bool); ok {
 		return d
 	}
+
 	return false
 }
 

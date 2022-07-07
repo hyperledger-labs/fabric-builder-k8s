@@ -8,6 +8,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+//nolint:gochecknoglobals // not sure how to avoid this
 var detectCmdPath string
 
 func TestDetect(t *testing.T) {

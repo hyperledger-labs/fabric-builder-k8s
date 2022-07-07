@@ -11,17 +11,25 @@ import (
 	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
 )
 
+const (
+	expectedArgsLength            = 3
+	chaincodeSourceDirectoryArg   = 1
+	chaincodeMetadataDirectoryArg = 2
+)
+
 func main() {
 	debug := util.GetOptionalEnv(util.DebugVariable, "false")
 	ctx := log.NewCmdContext(context.Background(), debug == "true")
 	logger := log.New(ctx)
 
-	if len(os.Args) != 3 {
+	if len(os.Args) != expectedArgsLength {
 		logger.Println("Expected CHAINCODE_SOURCE_DIR and CHAINCODE_METADATA_DIR arguments")
 		os.Exit(1)
 	}
-	chaincodeSourceDirectory := os.Args[1]
-	chaincodeMetadataDirectory := os.Args[2]
+
+	chaincodeSourceDirectory := os.Args[chaincodeSourceDirectoryArg]
+	chaincodeMetadataDirectory := os.Args[chaincodeMetadataDirectoryArg]
+
 	logger.Debugf("Chaincode source directory: %s", chaincodeSourceDirectory)
 	logger.Debugf("Chaincode metadata directory: %s", chaincodeMetadataDirectory)
 

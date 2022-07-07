@@ -12,7 +12,7 @@ const (
 	ChaincodeNamespaceVariable = builderVariablePrefix + "NAMESPACE"
 	DebugVariable              = builderVariablePrefix + "DEBUG"
 	KubeconfigPathVariable     = "KUBECONFIG_PATH"
-	PeerIdVariable             = "CORE_PEER_ID"
+	PeerIDVariable             = "CORE_PEER_ID"
 )
 
 func GetOptionalEnv(key, defaultValue string) string {
