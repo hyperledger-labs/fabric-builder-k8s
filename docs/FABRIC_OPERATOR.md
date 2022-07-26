@@ -7,7 +7,7 @@ The [Fabric Operator](https://github.com/hyperledger-labs/fabric-operator) inclu
 Before following [the Fabric Operator sample network instructions](https://github.com/hyperledger-labs/fabric-operator/tree/main/sample-network), export the following environment variables to use the k8s builder peer image:
 
 ```shell
-export TEST_NETWORK_PEER_IMAGE=ghcr.io/hyperledgendary/k8s-fabric-peer
+export TEST_NETWORK_PEER_IMAGE=ghcr.io/hyperledger-labs/k8s-fabric-peer
 export TEST_NETWORK_PEER_IMAGE_LABEL=v0.6.0
 ```
 

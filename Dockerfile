@@ -11,8 +11,8 @@ RUN apk add --no-cache \
 	make \
 	musl-dev
 
-ADD . $GOPATH/src/github.com/hyperledgendary/fabric-builder-k8s
-WORKDIR $GOPATH/src/github.com/hyperledgendary/fabric-builder-k8s
+ADD . $GOPATH/src/github.com/hyperledger-labs/fabric-builder-k8s
+WORKDIR $GOPATH/src/github.com/hyperledger-labs/fabric-builder-k8s
 
 RUN go install ./cmd/...
 
@@ -29,7 +29,7 @@ FROM hyperledger/fabric-peer:${HLF_VERSION}
 
 LABEL org.opencontainers.image.title "K8s Hyperledger Fabric Peer"
 LABEL org.opencontainers.image.description "Hyperledger Fabric Peer with a preconfigured Kubernetes chaincode builder"
-LABEL org.opencontainers.image.source "https://github.com/hyperledgendary/fabric-builder-k8s"
+LABEL org.opencontainers.image.source "https://github.com/hyperledger-labs/fabric-builder-k8s"
 
 COPY --from=core core.yaml ${FABRIC_CFG_PATH}
 COPY --from=build /go/bin/ /opt/hyperledger/k8s_builder/bin/

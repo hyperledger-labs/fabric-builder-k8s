@@ -4,7 +4,7 @@ The k8s builder can be used with the [nano test network](https://github.com/hype
 
 ## Download builder binaries
 
-Download the latest builder binaries from the [releases page](https://github.com/hyperledgendary/fabric-builder-k8s/releases) and extract them to a `k8s_builder/bin` directory in your home directory.
+Download the latest builder binaries from the [releases page](https://github.com/hyperledger-labs/fabric-builder-k8s/releases) and extract them to a `k8s_builder/bin` directory in your home directory.
 
 ## Configure builder
 

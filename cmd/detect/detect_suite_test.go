@@ -18,7 +18,7 @@ func TestDetect(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	var err error
-	detectCmdPath, err = gexec.Build("github.com/hyperledgendary/fabric-builder-k8s/cmd/detect")
+	detectCmdPath, err = gexec.Build("github.com/hyperledger-labs/fabric-builder-k8s/cmd/detect")
 	Expect(err).NotTo(HaveOccurred())
 })
 

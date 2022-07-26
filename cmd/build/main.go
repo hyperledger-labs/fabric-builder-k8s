@@ -6,9 +6,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/hyperledgendary/fabric-builder-k8s/internal/builder"
-	"github.com/hyperledgendary/fabric-builder-k8s/internal/log"
-	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
+	"github.com/hyperledger-labs/fabric-builder-k8s/internal/builder"
+	"github.com/hyperledger-labs/fabric-builder-k8s/internal/log"
+	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
 )
 
 const (
