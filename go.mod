@@ -1,4 +1,4 @@
-module github.com/hyperledgendary/fabric-builder-k8s
+module github.com/hyperledger-labs/fabric-builder-k8s
 
 go 1.17
 

@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hyperledgendary/fabric-builder-k8s/internal/log"
+	"github.com/hyperledger-labs/fabric-builder-k8s/internal/log"
 )
 
 // ChaincodeJSON represents the chaincode.json file that is supplied by Fabric in

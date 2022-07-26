@@ -5,8 +5,8 @@ package builder
 import (
 	"context"
 
-	"github.com/hyperledgendary/fabric-builder-k8s/internal/log"
-	"github.com/hyperledgendary/fabric-builder-k8s/internal/util"
+	"github.com/hyperledger-labs/fabric-builder-k8s/internal/log"
+	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
 )
 
 type Release struct {

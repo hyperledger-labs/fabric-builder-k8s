@@ -9,7 +9,7 @@ Follow the [Hyperledger Fabric Operator getting started instructions](https://la
 Configure the hfl-operator to use the k8s builder peer image:
 
 ```shell
-export PEER_IMAGE=ghcr.io/hyperledgendary/k8s-fabric-peer
+export PEER_IMAGE=ghcr.io/hyperledger-labs/k8s-fabric-peer
 export PEER_VERSION=v0.6.0
 ```
 

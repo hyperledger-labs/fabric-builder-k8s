@@ -18,7 +18,7 @@ func TestBuild(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	var err error
-	buildCmdPath, err = gexec.Build("github.com/hyperledgendary/fabric-builder-k8s/cmd/build")
+	buildCmdPath, err = gexec.Build("github.com/hyperledger-labs/fabric-builder-k8s/cmd/build")
 	Expect(err).NotTo(HaveOccurred())
 })
 
