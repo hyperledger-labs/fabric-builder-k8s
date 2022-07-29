@@ -1,0 +1,23 @@
+name: Node Contract Image CI
+
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+    paths:
+      - 'samples/node-contract/**'
+  pull_request:
+    branches:
+      - 'main'
+    paths:
+      - 'samples/node-contract/**'
+
+jobs:
+  docker_build:
+    name: Docker build
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      imagename: node-contract
+      path: samples/node-contract
