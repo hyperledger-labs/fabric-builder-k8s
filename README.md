@@ -75,7 +75,7 @@ The chaincode will have access to the following environment variables:
 - CORE_TLS_CLIENT_CERT_FILE
 - CORE_PEER_LOCALMSPID
 
-See [conga-nft-contract](https://github.com/hyperledgendary/conga-nft-contract) for an example project which publishes a chaincode image using GitHub Actions.
+See the [sample contracts for Go, Java, and Node.js](samples/README.md) for basic docker images which will work with the k8s builder.
 
 ## Chaincode package
 
