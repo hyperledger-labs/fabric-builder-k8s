@@ -92,8 +92,8 @@ For example,
 ```shell
 cat << IMAGEJSON-EOF > image.json
 {
-  "name": "ghcr.io/hyperledgendary/conga-nft-contract",
-  "digest": "sha256:b35962f000d26ad046d4102f22d70a1351692fc69a9ddead89dfa13aefb942a7"
+  "name": "ghcr.io/hyperledger-labs/go-contract",
+  "digest": "sha256:802c336235cc1e7347e2da36c73fa2e4b6437cfc6f52872674d1e23f23bba63b"
 }
 IMAGEJSON-EOF
 ```
@@ -102,7 +102,8 @@ Note: the k8s chaincode package file uses digests because these are immutable, u
 The docker inspect command can be used to find the digest if required.
 
 ```
-docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/hyperledgendary/conga-nft-contract:0bee560018ea932ec4c7ec252134e2506ec6e797 | cut -d'@' -f2
+docker pull ghcr.io/hyperledger-labs/go-contract:v0.7.2
+docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/hyperledger-labs/go-contract:v0.7.2 | cut -d'@' -f2
 ```
 
 Create a `code.tar.gz` archive containing the `image.json` file.
@@ -118,7 +119,7 @@ For example,
 cat << METADATAJSON-EOF > metadata.json
 {
     "type": "k8s",
-    "label": "conga-nft-contract"
+    "label": "go-contract"
 }
 METADATAJSON-EOF
 ```
@@ -126,7 +127,7 @@ METADATAJSON-EOF
 Create the final chaincode package archive.
 
 ```shell
-tar -czf conga-nft-contract.tgz metadata.json code.tar.gz
+tar -czf go-contract.tgz metadata.json code.tar.gz
 ```
 
 Ideally the chaincode package should be created in the same CI/CD pipeline which builds the docker image.
@@ -137,7 +138,7 @@ For example, to create a basic k8s chaincode package using the `pkgk8scc.sh` hel
 
 ```shell
 curl -fsSL https://raw.githubusercontent.com/hyperledgendary/package-k8s-chaincode-action/main/pkgk8scc.sh -o pkgk8scc.sh && chmod u+x pkgk8scc.sh
-./pkgk8scc.sh -l conga-nft-contract -n ghcr.io/hyperledgendary/conga-nft-contract -d sha256:b39eb624e9cc7ed3fa70bf7ea27721e266ae56b48992a916165af3a6b2a4f6eb
+./pkgk8scc.sh -l go-contract -n ghcr.io/hyperledger-labs/go-contract -d sha256:802c336235cc1e7347e2da36c73fa2e4b6437cfc6f52872674d1e23f23bba63b
 ```
 
 ## Chaincode deploy
@@ -145,11 +146,11 @@ curl -fsSL https://raw.githubusercontent.com/hyperledgendary/package-k8s-chainco
 Deploy the chaincode package as usual, starting by installing the k8s chaincode package.
 
 ```shell
-peer lifecycle chaincode install conga-nft-contract.tgz
+peer lifecycle chaincode install go-contract.tgz
 ```
 
 You can also user the `peer` command to get the chaincode package ID.
 
 ```shell
-export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid conga-nft-contract.tgz) && echo $PACKAGE_ID
+export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid go-contract.tgz) && echo $PACKAGE_ID
 ```

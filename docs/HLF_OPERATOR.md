@@ -98,16 +98,15 @@ kubectl auth can-i patch secrets --namespace default --as system:serviceaccount:
 
 ## Download a chaincode package
 
-The [conga-nft-contract](https://github.com/hyperledgendary/conga-nft-contract) sample chaincode publishes a 
-Docker image _and_ a chaincode package archive to GitHub for use with the k8s-builder.  Use of a pre-generated package .tgz 
-greatly simplifies the deployment, aligning with standard industry practices for CI/CD and git-ops workflows. 
+The [sample contracts for Go, Java, and Node.js](samples/README.md) publish a Docker image which the k8s builder can use _and_ a chaincode package file which can be used with the `peer lifecycle chaincode install` command.
+Use of a pre-generated chaincode package .tgz greatly simplifies the deployment, aligning with standard industry practices for CI/CD and git-ops workflows. 
 
-Download the sample chaincode package: 
+Download a sample chaincode package, e.g. for the Go contract: 
 
 ```shell
 curl -fsSL \
-  https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.1/conga-nft-contract-v0.1.1.tgz \
-  -o conga-nft-contract-v0.1.1.tgz
+  https://github.com/hyperledger-labs/fabric-builder-k8s/releases/download/v0.7.2/go-contract-v0.7.2.tgz \
+  -o go-contract-v0.7.2.tgz
 ```
 
 ## Deploying chaincode
@@ -117,17 +116,17 @@ Install the chaincode package to a peer
 **Note:** the `--language` argument is required even though it does not make sense in this case
 
 ```shell
-export CHAINCODE_NAME=conga-nft-contract
-export CHAINCODE_LABEL=conga-nft-contract
+export CHAINCODE_NAME=go-contract
+export CHAINCODE_LABEL=go-contract
 
-kubectl hlf chaincode install --path=./conga-nft-contract-v0.1.1.tgz \
+kubectl hlf chaincode install --path=./go-contract-v0.7.2.tgz \
     --config=org1.yaml --language=golang --label=$CHAINCODE_LABEL --user=admin --peer=org1-peer0.default
 ```
 
 Get the chaincode's PACKAGE_ID
 
 ```
-export PACKAGE_ID=$(kubectl hlf chaincode calculatepackageid --path=./conga-nft-contract-v0.1.1.tgz --language=golang --label=$CHAINCODE_LABEL) && echo $PACKAGE_ID
+export PACKAGE_ID=$(kubectl hlf chaincode calculatepackageid --path=./go-contract-v0.7.2.tgz --language=golang --label=$CHAINCODE_LABEL) && echo $PACKAGE_ID
 ```
 
 Approve the chaincode
