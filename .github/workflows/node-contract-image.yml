@@ -21,3 +21,4 @@ jobs:
     with:
       imagename: node-contract
       path: samples/node-contract
+      chaincode: true

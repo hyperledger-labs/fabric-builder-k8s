@@ -21,3 +21,4 @@ jobs:
     with:
       imagename: go-contract
       path: samples/go-contract
+      chaincode: true
