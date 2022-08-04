@@ -11,6 +11,11 @@ on:
         description: 'A path containing a Dockerfile passed from the caller workflow'
         required: true
         type: string
+      chaincode:
+        description: 'A boolean indicating whether to create a chaincode package passed from the caller workflow'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -32,6 +37,7 @@ jobs:
         DOCKER_BUILD_PATH: ${{ inputs.path }}
         IMAGE_NAME: ${{ inputs.imagename }}
     - name: Publish Docker image
+      id: publish_image
       if: github.event_name != 'pull_request'
       run: |
         echo ${DOCKER_PW} | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
@@ -47,7 +53,7 @@ jobs:
         DOCKER_PW: ${{ secrets.GITHUB_TOKEN }}
 
   package:
-    if: needs.build.outputs.image_digest != ''
+    if: inputs.chaincode && needs.build.outputs.image_digest != ''
     needs: build
     runs-on: ubuntu-latest
 

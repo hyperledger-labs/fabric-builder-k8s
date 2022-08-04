@@ -21,3 +21,4 @@ jobs:
     with:
       imagename: java-contract
       path: samples/java-contract
+      chaincode: true
