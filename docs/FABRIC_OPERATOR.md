@@ -40,32 +40,32 @@ export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/temp/channel-msp/peerOrganizations/org
 
 ## Download a chaincode package
 
-The [conga-nft-contract](https://github.com/hyperledgendary/conga-nft-contract) sample chaincode publishes a 
-Docker image _and_ a chaincode package archive to GitHub for use with the k8s-builder.  Use of a pre-generated package .tgz 
-greatly simplifies the deployment, aligning with standard industry practices for CI/CD and git-ops workflows. 
+The [sample contracts for Go, Java, and Node.js](samples/README.md) publish a Docker image which the k8s builder can use _and_ a chaincode package file which can be used with the `peer lifecycle chaincode install` command.
+Use of a pre-generated chaincode package .tgz greatly simplifies the deployment, aligning with standard industry practices for CI/CD and git-ops workflows.
 
-Download the sample chaincode package: 
+Download a sample chaincode package, e.g. for the Go contract: 
 
 ```shell
 curl -fsSL \
-  https://github.com/hyperledgendary/conga-nft-contract/releases/download/v0.1.1/conga-nft-contract-v0.1.1.tgz \
-  -o conga-nft-contract-v0.1.1.tgz
+  https://github.com/hyperledger-labs/fabric-builder-k8s/releases/download/v0.7.2/go-contract-v0.7.2.tgz \
+  -o go-contract-v0.7.2.tgz
 ```
 
 ## Deploying chaincode
 
-Install the chaincode archive to a peer and infer the chaincode's PACKAGE_ID: 
+Deploy the chaincode package as usual, starting by installing the k8s chaincode package.
 
 ```shell
-peer lifecycle chaincode install conga-nft-contract-v0.1.1.tgz
+peer lifecycle chaincode install go-contract-v0.7.2.tgz
 ```
+
+Export a `PACKAGE_ID` environment variable for use in the following commands.
 
 ```shell
-export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid conga-nft-contract-v0.1.1.tgz) && echo $PACKAGE_ID
+export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid go-contract-v0.7.2.tgz) && echo $PACKAGE_ID
 ```
 
-(Note: PACKAGE_ID must match the chaincode identifier displayed by the `peer lifecycle chaincode install` command.)
-
+Note: the `PACKAGE_ID` must match the chaincode code package identifier shown by the `peer lifecycle chaincode install` command.
 
 Approve the chaincode:
 
@@ -73,7 +73,7 @@ Approve the chaincode:
 peer lifecycle \
   chaincode approveformyorg \
   --channelID     mychannel \
-  --name          conga-nft-contract \
+  --name          sample-contract \
   --version       1 \
   --package-id    ${PACKAGE_ID} \
   --sequence      1 \
@@ -88,7 +88,7 @@ Commit the chaincode.
 peer lifecycle \
   chaincode commit \
   --channelID     mychannel \
-  --name          conga-nft-contract \
+  --name          sample-contract \
   --version       1 \
   --sequence      1 \
   --orderer       test-network-org0-orderersnode1-orderer.${TEST_NETWORK_INGRESS_DOMAIN}:443 \
@@ -107,5 +107,5 @@ kubectl -n test-network describe pods -l app.kubernetes.io/created-by=fabric-bui
 Query the chaincode metadata!
 
 ```shell
-network chaincode query conga-nft-contract '{"Args":["org.hyperledger.fabric:GetMetadata"]}'
+network chaincode query sample-contract '{"Args":["org.hyperledger.fabric:GetMetadata"]}'
 ```
