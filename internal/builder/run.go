@@ -51,5 +51,7 @@ func (r *Run) Run(ctx context.Context) error {
 		return err
 	}
 
+	logger.Printf("Running chaincode ID %s in kubernetes pod %s/%s", chaincodeData.ChaincodeID, pod.Namespace, pod.Name)
+
 	return util.WaitForChaincodePod(ctx, logger, podsClient, pod, chaincodeData.ChaincodeID)
 }

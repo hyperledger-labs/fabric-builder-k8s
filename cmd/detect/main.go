@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/builder"
@@ -39,7 +40,11 @@ func main() {
 	}
 
 	if err := detect.Run(ctx); err != nil {
-		logger.Printf("Error detecting chaincode: %+v", err)
+		if !errors.Is(err, builder.ErrUnsupportedChaincodeType) {
+			// don't spam the peer log if it's just chaincode we don't recognise
+			logger.Printf("Error detecting chaincode: %+v", err)
+		}
+
 		os.Exit(1)
 	}
 }
