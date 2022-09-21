@@ -5,6 +5,7 @@ package builder
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -19,8 +20,11 @@ type Detect struct {
 }
 
 type metadata struct {
-	Type string `json:"type"`
+	Label string `json:"label"`
+	Type  string `json:"type"`
 }
+
+var ErrUnsupportedChaincodeType = errors.New("chaincode type not supported")
 
 func (d *Detect) Run(ctx context.Context) error {
 	logger := log.New(ctx)
@@ -41,8 +45,12 @@ func (d *Detect) Run(ctx context.Context) error {
 	}
 
 	if strings.ToLower(metadata.Type) == "k8s" {
+		logger.Printf("Detected k8s chaincode: %s", metadata.Label)
+
 		return nil
 	}
 
-	return fmt.Errorf("chaincode type not supported: %s", metadata.Type)
+	logger.Debugf("Chaincode type not supported: %s", metadata.Type)
+
+	return ErrUnsupportedChaincodeType
 }
