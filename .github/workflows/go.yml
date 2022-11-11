@@ -62,7 +62,9 @@ jobs:
         mv fabric-builder-k8s-${GOOS}-${GOARCH}.tgz fabric-builder-k8s-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}.tgz
 
     - name: Upload package
-      run: gh release upload $GITHUB_REF_NAME fabric-builder-k8s-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}.tgz
+      run: |
+        export GOOS=$(go env GOOS)
+        gh release upload $GITHUB_REF_NAME fabric-builder-k8s-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}.tgz
       if: startsWith(github.ref, 'refs/tags/v')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
