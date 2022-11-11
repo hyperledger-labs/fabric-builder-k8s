@@ -56,13 +56,13 @@ jobs:
         ls -l fabric-builder-k8s-${GOOS}-${GOARCH}.tgz
 
     - name: Rename package
-      if: startsWith(github.ref, 'refs/tags/')
+      if: startsWith(github.ref, 'refs/tags/v')
       run: |
         export GOOS=$(go env GOOS)
         mv fabric-builder-k8s-${GOOS}-${GOARCH}.tgz fabric-builder-k8s-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}.tgz
 
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        files: fabric-builder-k8s-*.tgz
+    - name: Upload package
+      run: gh release upload $GITHUB_REF_NAME fabric-builder-k8s-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}.tgz
+      if: startsWith(github.ref, 'refs/tags/v')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
