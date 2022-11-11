@@ -19,6 +19,6 @@ jobs:
     name: Docker build
     uses: ./.github/workflows/docker-build.yml
     with:
-      imagename: node-contract
+      image-name: ghcr.io/hyperledger-labs/fabric-builder-k8s/sample-node-contract
       path: samples/node-contract
-      chaincode: true
+      chaincode-label: node-contract
