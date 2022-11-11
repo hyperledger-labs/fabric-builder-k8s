@@ -19,6 +19,6 @@ jobs:
     name: Docker build
     uses: ./.github/workflows/docker-build.yml
     with:
-      imagename: java-contract
+      image-name: ghcr.io/hyperledger-labs/fabric-builder-k8s/sample-java-contract
       path: samples/java-contract
-      chaincode: true
+      chaincode-label: java-contract

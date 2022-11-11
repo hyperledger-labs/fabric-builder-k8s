@@ -23,5 +23,5 @@ jobs:
     name: Docker build
     uses: ./.github/workflows/docker-build.yml
     with:
-      imagename: k8s-fabric-peer
+      image-name: ghcr.io/hyperledger-labs/fabric-builder-k8s/k8s-fabric-peer
       path: .

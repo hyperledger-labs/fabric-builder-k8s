@@ -19,6 +19,6 @@ jobs:
     name: Docker build
     uses: ./.github/workflows/docker-build.yml
     with:
-      imagename: go-contract
+      image-name: ghcr.io/hyperledger-labs/fabric-builder-k8s/sample-go-contract
       path: samples/go-contract
-      chaincode: true
+      chaincode-label: go-contract
