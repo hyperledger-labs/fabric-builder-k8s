@@ -21,7 +21,12 @@ func CopyImageJSON(logger *log.CmdLogger, src, dest string) error {
 
 	err := copy.Copy(imageSrcPath, imageDestPath)
 	if err != nil {
-		return fmt.Errorf("failed to copy chaincode image file from %s to %s: %w", imageSrcPath, imageDestPath, err)
+		return fmt.Errorf(
+			"failed to copy chaincode image file from %s to %s: %w",
+			imageSrcPath,
+			imageDestPath,
+			err,
+		)
 	}
 
 	logger.Debugf("Verifying chaincode image file %s", imageDestPath)
@@ -53,7 +58,11 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 	}
 
 	if !fileInfo.IsDir() {
-		return fmt.Errorf("CouchDB index definitions path %s is not a directory: %w", indexSrcDir, err)
+		return fmt.Errorf(
+			"CouchDB index definitions path %s is not a directory: %w",
+			indexSrcDir,
+			err,
+		)
 	}
 
 	opt := copy.Options{
@@ -63,7 +72,12 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 	}
 
 	if err := copy.Copy(indexSrcDir, indexDestDir, opt); err != nil {
-		return fmt.Errorf("failed to copy CouchDB index definitions from %s to %s: %w", indexSrcDir, indexDestDir, err)
+		return fmt.Errorf(
+			"failed to copy CouchDB index definitions from %s to %s: %w",
+			indexSrcDir,
+			indexDestDir,
+			err,
+		)
 	}
 
 	return nil
@@ -91,7 +105,12 @@ func CopyMetadataDir(logger *log.CmdLogger, src, dest string) error {
 	}
 
 	if err := copy.Copy(metadataSrcDir, metadataDestDir); err != nil {
-		return fmt.Errorf("failed to copy chaincode metadata from %s to %s: %w", metadataSrcDir, metadataDestDir, err)
+		return fmt.Errorf(
+			"failed to copy chaincode metadata from %s to %s: %w",
+			metadataSrcDir,
+			metadataDestDir,
+			err,
+		)
 	}
 
 	return nil

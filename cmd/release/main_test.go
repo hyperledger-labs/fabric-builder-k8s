@@ -50,7 +50,14 @@ var _ = Describe("Main", func() {
 		Expect(indexPath).To(BeARegularFile())
 		textPath := filepath.Join(tempDir, "statedb", "couchdb", "indexes", "test.txt")
 		Expect(textPath).NotTo(BeAnExistingFile())
-		subdirPath := filepath.Join(tempDir, "statedb", "couchdb", "indexes", "subdir", "indexOwner.json")
+		subdirPath := filepath.Join(
+			tempDir,
+			"statedb",
+			"couchdb",
+			"indexes",
+			"subdir",
+			"indexOwner.json",
+		)
 		Expect(subdirPath).NotTo(BeAnExistingFile())
 	})
 })

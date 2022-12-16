@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	builderVariablePrefix      = "FABRIC_K8S_BUILDER_"
-	ChaincodeNamespaceVariable = builderVariablePrefix + "NAMESPACE"
-	DebugVariable              = builderVariablePrefix + "DEBUG"
-	KubeconfigPathVariable     = "KUBECONFIG_PATH"
-	PeerIDVariable             = "CORE_PEER_ID"
+	builderVariablePrefix           = "FABRIC_K8S_BUILDER_"
+	ChaincodeNamespaceVariable      = builderVariablePrefix + "NAMESPACE"
+	ChaincodeServiceAccountVariable = builderVariablePrefix + "SERVICE_ACCOUNT"
+	DebugVariable                   = builderVariablePrefix + "DEBUG"
+	KubeconfigPathVariable          = "KUBECONFIG_PATH"
+	PeerIDVariable                  = "CORE_PEER_ID"
 )
 
 func GetOptionalEnv(key, defaultValue string) string {

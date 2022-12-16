@@ -24,7 +24,9 @@ func main() {
 	logger := log.New(ctx)
 
 	if len(os.Args) != expectedArgsLength {
-		logger.Println("Expected CHAINCODE_SOURCE_DIR, CHAINCODE_METADATA_DIR and BUILD_OUTPUT_DIR arguments")
+		logger.Println(
+			"Expected CHAINCODE_SOURCE_DIR, CHAINCODE_METADATA_DIR and BUILD_OUTPUT_DIR arguments",
+		)
 		os.Exit(1)
 	}
 

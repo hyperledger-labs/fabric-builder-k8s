@@ -37,7 +37,12 @@ var _ = Describe("Main", func() {
 			return []string{"CHAINCODE_SOURCE_DIR"}
 		}),
 		Entry("When too many arguments are provided", 1, func() []string {
-			return []string{"CHAINCODE_SOURCE_DIR", "CHAINCODE_METADATA_DIR", "BUILD_OUTPUT_DIR", "UNEXPECTED_ARGUMENT"}
+			return []string{
+				"CHAINCODE_SOURCE_DIR",
+				"CHAINCODE_METADATA_DIR",
+				"BUILD_OUTPUT_DIR",
+				"UNEXPECTED_ARGUMENT",
+			}
 		}),
 	)
 

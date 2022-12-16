@@ -9,7 +9,6 @@ linters:
     - containedctx
     - contextcheck
     - cyclop
-    - deadcode
     - decorder
     - depguard
     - dogsled
@@ -45,11 +44,9 @@ linters:
     - gosimple
     - govet
     - grouper
-    - ifshort
     - importas
     - ineffassign
     - ireturn
-    - lll
     - maintidx
     - makezero
     - misspell
@@ -69,7 +66,6 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
     - tenv
     - testpackage
@@ -79,7 +75,6 @@ linters:
     - unconvert
     - unparam
     - unused
-    - varcheck
     - varnamelen
     - wastedassign
     - whitespace
@@ -87,6 +82,8 @@ linters:
 linters-settings:
   errorlint:
     errorf: true
+  funlen:
+    lines: 100
   nolintlint:
     require-explanation: true
     require-specific: true

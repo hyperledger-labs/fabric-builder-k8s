@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -95,7 +95,11 @@ func waitForPodRunning(
 	podRunningCondition := func(event watch.Event) (bool, error) {
 		pod, ok := event.Object.(*apiv1.Pod)
 		if !ok {
-			return false, fmt.Errorf("unexpected object while watching pod %s/%s", namespace, podName)
+			return false, fmt.Errorf(
+				"unexpected object while watching pod %s/%s",
+				namespace,
+				podName,
+			)
 		}
 
 		phase := pod.Status.Phase
@@ -122,7 +126,11 @@ func waitForPodTermination(
 
 		pod, ok := event.Object.(*apiv1.Pod)
 		if !ok {
-			return false, fmt.Errorf("unexpected object while watching pod %s/%s", namespace, podName)
+			return false, fmt.Errorf(
+				"unexpected object while watching pod %s/%s",
+				namespace,
+				podName,
+			)
 		}
 
 		phase := pod.Status.Phase
@@ -205,7 +213,7 @@ func GetKubeClientset(logger *log.CmdLogger, kubeconfigPath string) (*kubernetes
 }
 
 func GetKubeNamespace() (string, error) {
-	namespace, err := ioutil.ReadFile(namespacePath)
+	namespace, err := os.ReadFile(namespacePath)
 	if err != nil {
 		return "", fmt.Errorf("unable to read namespace from %s: %w", namespacePath, err)
 	}
@@ -213,10 +221,9 @@ func GetKubeNamespace() (string, error) {
 	return string(namespace), nil
 }
 
-//nolint:funlen // need to skip length check due to pod definition
 func getChaincodePodObject(
 	imageData *ImageJSON,
-	namespace, podName, peerID string,
+	namespace, serviceAccount, podName, peerID string,
 	chaincodeData *ChaincodeJSON,
 ) *apiv1.Pod {
 	chaincodeImage := imageData.Name + "@" + imageData.Digest
@@ -238,6 +245,7 @@ func getChaincodePodObject(
 			},
 		},
 		Spec: apiv1.PodSpec{
+			ServiceAccountName: serviceAccount,
 			Containers: []apiv1.Container{
 				{
 					Name:  "main",
@@ -295,7 +303,11 @@ func getChaincodePodObject(
 					Name: "certs",
 					VolumeSource: apiv1.VolumeSource{
 						Secret: &apiv1.SecretVolumeSource{
-							SecretName: getSecretName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID),
+							SecretName: getSecretName(
+								chaincodeData.MspID,
+								peerID,
+								chaincodeData.ChaincodeID,
+							),
 						},
 					},
 				},
@@ -352,12 +364,21 @@ func ApplyChaincodeSecrets(
 ) error {
 	secret := getChaincodeSecretApplyConfiguration(namespace, peerID, chaincodeData)
 
-	s, err := secretsClient.Apply(ctx, secret, metav1.ApplyOptions{FieldManager: "fabric-builder-k8s"})
+	result, err := secretsClient.Apply(
+		ctx,
+		secret,
+		metav1.ApplyOptions{FieldManager: "fabric-builder-k8s"},
+	)
 	if err != nil {
 		return err
 	}
 
-	logger.Debugf("Applied secrets for chaincode ID %s: %s/%s", chaincodeData.ChaincodeID, s.Namespace, s.Name)
+	logger.Debugf(
+		"Applied secrets for chaincode ID %s: %s/%s",
+		chaincodeData.ChaincodeID,
+		result.Namespace,
+		result.Name,
+	)
 
 	return nil
 }
@@ -418,12 +439,19 @@ func CreateChaincodePod(
 	ctx context.Context,
 	logger *log.CmdLogger,
 	podsClient v1.PodInterface,
-	namespace, peerID string,
+	namespace, serviceAccount, peerID string,
 	chaincodeData *ChaincodeJSON,
 	imageData *ImageJSON,
 ) (*apiv1.Pod, error) {
 	podName := getPodName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID)
-	podDefinition := getChaincodePodObject(imageData, namespace, podName, peerID, chaincodeData)
+	podDefinition := getChaincodePodObject(
+		imageData,
+		namespace,
+		serviceAccount,
+		podName,
+		peerID,
+		chaincodeData,
+	)
 
 	err := deleteChaincodePod(ctx, logger, podsClient, podName, namespace, chaincodeData)
 	if err != nil {
