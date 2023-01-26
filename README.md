@@ -50,7 +50,11 @@ With the k8s-builder, _chaincode just works!_
 
 The k8s builder can be run in cluster using the `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT` environment variables, or it can connect using a `KUBECONFIG_PATH` environment variable.
 
-An optional `FABRIC_K8S_BUILDER_NAMESPACE` can be used to specify the namespace to deploy chaincode to.
+The following optional environment variables can be used to configure the k8s builder:
+
+- `FABRIC_K8S_BUILDER_DEBUG` whether to enable additional logging
+- `FABRIC_K8S_BUILDER_NAMESPACE` specifies the namespace to deploy chaincode to
+- `FABRIC_K8S_BUILDER_SERVICE_ACCOUNT` specifies the service account for the chaincode pod
 
 A `CORE_PEER_ID` environment variable is also currently required.
 
@@ -64,6 +68,7 @@ External builders are configured in the `core.yaml` file, for example:
         - CORE_PEER_ID
         - FABRIC_K8S_BUILDER_DEBUG
         - FABRIC_K8S_BUILDER_NAMESPACE
+        - FABRIC_K8S_BUILDER_SERVICE_ACCOUNT
         - KUBERNETES_SERVICE_HOST
         - KUBERNETES_SERVICE_PORT
 ```

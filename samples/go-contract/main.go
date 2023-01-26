@@ -11,12 +11,19 @@ type SampleContract struct {
 }
 
 // PutValue - Adds a key value pair to the world state
-func (sc *SampleContract) PutValue(ctx contractapi.TransactionContextInterface, key string, value string) error {
+func (sc *SampleContract) PutValue(
+	ctx contractapi.TransactionContextInterface,
+	key string,
+	value string,
+) error {
 	return ctx.GetStub().PutState(key, []byte(value))
 }
 
 // GetValue - Gets the value for a key from the world state
-func (sc *SampleContract) GetValue(ctx contractapi.TransactionContextInterface, key string) (string, error) {
+func (sc *SampleContract) GetValue(
+	ctx contractapi.TransactionContextInterface,
+	key string,
+) (string, error) {
 	bytes, err := ctx.GetStub().GetState(key)
 
 	if err != nil {

@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -17,6 +18,8 @@ func TestDetect(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	SetDefaultEventuallyTimeout(2 * time.Second)
+
 	var err error
 	detectCmdPath, err = gexec.Build("github.com/hyperledger-labs/fabric-builder-k8s/cmd/detect")
 	Expect(err).NotTo(HaveOccurred())

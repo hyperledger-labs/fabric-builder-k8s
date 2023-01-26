@@ -28,6 +28,7 @@ kubectl patch peer org1-peer0 --type=json --patch-file=/dev/stdin <<-EOF
         "CORE_PEER_ID",
         "FABRIC_K8S_BUILDER_DEBUG",
         "FABRIC_K8S_BUILDER_NAMESPACE",
+        "FABRIC_K8S_BUILDER_SERVICE_ACCOUNT",
         "KUBERNETES_SERVICE_HOST",
         "KUBERNETES_SERVICE_PORT"
       ]

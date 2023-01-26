@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -32,7 +32,7 @@ func (d *Detect) Run(ctx context.Context) error {
 
 	mdpath := filepath.Join(d.ChaincodeMetadataDirectory, "metadata.json")
 
-	mdbytes, err := ioutil.ReadFile(mdpath)
+	mdbytes, err := os.ReadFile(mdpath)
 	if err != nil {
 		return fmt.Errorf("unable to read %s: %w", mdpath, err)
 	}

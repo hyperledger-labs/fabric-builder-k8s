@@ -54,12 +54,16 @@ func main() {
 		}
 	}
 
+	kubeServiceAccount := util.GetOptionalEnv(util.ChaincodeServiceAccountVariable, "default")
+	logger.Debugf("%s=%s", util.ChaincodeServiceAccountVariable, kubeServiceAccount)
+
 	run := &builder.Run{
 		BuildOutputDirectory: buildOutputDirectory,
 		RunMetadataDirectory: runMetadataDirectory,
 		PeerID:               peerID,
 		KubeconfigPath:       kubeconfigPath,
 		KubeNamespace:        kubeNamespace,
+		KubeServiceAccount:   kubeServiceAccount,
 	}
 
 	if err := run.Run(ctx); err != nil {

@@ -16,6 +16,7 @@ type Run struct {
 	PeerID               string
 	KubeconfigPath       string
 	KubeNamespace        string
+	KubeServiceAccount   string
 }
 
 func (r *Run) Run(ctx context.Context) error {
@@ -34,24 +35,53 @@ func (r *Run) Run(ctx context.Context) error {
 
 	clientset, err := util.GetKubeClientset(logger, r.KubeconfigPath)
 	if err != nil {
-		return fmt.Errorf("unable to connect kubernetes client for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
+		return fmt.Errorf(
+			"unable to connect kubernetes client for chaincode ID %s: %w",
+			chaincodeData.ChaincodeID,
+			err,
+		)
 	}
 
 	secretsClient := clientset.CoreV1().Secrets(r.KubeNamespace)
 
-	err = util.ApplyChaincodeSecrets(ctx, logger, secretsClient, r.KubeNamespace, r.PeerID, chaincodeData)
+	err = util.ApplyChaincodeSecrets(
+		ctx,
+		logger,
+		secretsClient,
+		r.KubeNamespace,
+		r.PeerID,
+		chaincodeData,
+	)
 	if err != nil {
-		return fmt.Errorf("unable to create kubernetes secret for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
+		return fmt.Errorf(
+			"unable to create kubernetes secret for chaincode ID %s: %w",
+			chaincodeData.ChaincodeID,
+			err,
+		)
 	}
 
 	podsClient := clientset.CoreV1().Pods(r.KubeNamespace)
 
-	pod, err := util.CreateChaincodePod(ctx, logger, podsClient, r.KubeNamespace, r.PeerID, chaincodeData, imageData)
+	pod, err := util.CreateChaincodePod(
+		ctx,
+		logger,
+		podsClient,
+		r.KubeNamespace,
+		r.KubeServiceAccount,
+		r.PeerID,
+		chaincodeData,
+		imageData,
+	)
 	if err != nil {
 		return err
 	}
 
-	logger.Printf("Running chaincode ID %s in kubernetes pod %s/%s", chaincodeData.ChaincodeID, pod.Namespace, pod.Name)
+	logger.Printf(
+		"Running chaincode ID %s in kubernetes pod %s/%s",
+		chaincodeData.ChaincodeID,
+		pod.Namespace,
+		pod.Name,
+	)
 
 	return util.WaitForChaincodePod(ctx, logger, podsClient, pod, chaincodeData.ChaincodeID)
 }
