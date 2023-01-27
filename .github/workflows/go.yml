@@ -38,9 +38,7 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    # Testing the compiled binary will not work without emulation on arm
     - name: Test
-      if: ${{ matrix.goarch != 'arm64' }}
       run: go test -v ./...
       env:
         FABRIC_K8S_BUILDER_DEBUG: 'true'
