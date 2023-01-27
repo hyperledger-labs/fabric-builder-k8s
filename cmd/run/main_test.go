@@ -59,7 +59,7 @@ var _ = Describe("Main", func() {
 			).Should(gbytes.Say(`run \[\d+\] DEBUG: FABRIC_K8S_BUILDER_SERVICE_ACCOUNT=chaincode`))
 			Eventually(
 				session.Err,
-			).Should(gbytes.Say(`run \[\d+\]: Running chaincode ID CHAINCODE_ID in kubernetes pod chaincode/cc-mspid-core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789chai`))
+			).Should(gbytes.Say(`run \[\d+\]: Running chaincode ID CHAINCODE_ID in kubernetes pod chaincode/cc-m4eml38l6lv2ost7v1i3q6698a5p4gu1l3lnflb4boi7jnle6lt0`))
 
 			pipe := script.Exec(
 				"kubectl wait --for=condition=ready pod --timeout=120s --namespace=chaincode -l fabric-builder-k8s-peerid=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789",

@@ -4,10 +4,11 @@ package util
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base32"
 	"encoding/base64"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -36,8 +37,6 @@ const (
 	TLSClientCertFile     string = "/etc/hyperledger/fabric/client_pem.crt"
 	TLSClientRootCertFile string = "/etc/hyperledger/fabric/peer.crt"
 )
-
-var mangledRegExp = regexp.MustCompile("[^a-zA-Z0-9-_.]")
 
 func waitForPod(
 	ctx context.Context,
@@ -303,7 +302,7 @@ func getChaincodePodObject(
 					Name: "certs",
 					VolumeSource: apiv1.VolumeSource{
 						Secret: &apiv1.SecretVolumeSource{
-							SecretName: getSecretName(
+							SecretName: GetValidName(
 								chaincodeData.MspID,
 								peerID,
 								chaincodeData.ChaincodeID,
@@ -320,7 +319,7 @@ func getChaincodeSecretApplyConfiguration(
 	namespace, peerID string,
 	chaincodeData *ChaincodeJSON,
 ) *applycorev1.SecretApplyConfiguration {
-	name := getSecretName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID)
+	name := GetValidName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID)
 
 	annotations := map[string]string{
 		"fabric-builder-k8s-ccid": chaincodeData.ChaincodeID,
@@ -349,10 +348,6 @@ func getChaincodeSecretApplyConfiguration(
 		WithLabels(labels).
 		WithStringData(data).
 		WithType(apiv1.SecretTypeOpaque)
-}
-
-func getPodName(mspID, peerID, chaincodeID string) string {
-	return mangleName("cc-" + mspID + "-" + peerID + chaincodeID)
 }
 
 func ApplyChaincodeSecrets(
@@ -443,7 +438,7 @@ func CreateChaincodePod(
 	chaincodeData *ChaincodeJSON,
 	imageData *ImageJSON,
 ) (*apiv1.Pod, error) {
-	podName := getPodName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID)
+	podName := GetValidName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID)
 	podDefinition := getChaincodePodObject(
 		imageData,
 		namespace,
@@ -492,11 +487,13 @@ func CreateChaincodePod(
 	return pod, nil
 }
 
-func getSecretName(mspID, peerID, chaincodeID string) string {
-	return mangleName("cc-" + mspID + "-" + peerID + chaincodeID)
-}
+// GetValidName returns a valid RFC 1035 label name.
+func GetValidName(mspID, peerID, chaincodeID string) string {
+	qualifiedChaincodeID := mspID + ":" + peerID + ":" + chaincodeID
+	h := sha256.New()
+	h.Write([]byte(qualifiedChaincodeID))
+	sum := h.Sum(nil)
+	encodedChaincodeID := base32.HexEncoding.WithPadding(base32.NoPadding).EncodeToString(sum)
 
-func mangleName(name string) string {
-	// TODO need sensible unique naming scheme for deployments and secrets!
-	return strings.ToLower(mangledRegExp.ReplaceAllString(name, "-")[:63])
+	return "cc-" + strings.ToLower(encodedChaincodeID)
 }
