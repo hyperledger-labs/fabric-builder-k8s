@@ -3,7 +3,7 @@
 Kubernetes [external chaincode builder](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html)
 for Hyperledger Fabric.
 
-With the k8s-builder, the Fabric administrator is responsible for preparing a chaincode image, publishing to a
+With the k8s builder, the Fabric administrator is responsible for preparing a chaincode image, publishing to a
 container registry, and preparing a [chaincode package](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html#chaincode-packages)
 with coordinates of the contract's immutable image digest.  When Fabric detects the installation of a `type=k8s`
 contract, the builder assumes full ownership of the lifecycle of pods, containers, and network linkages necessary 
@@ -12,12 +12,12 @@ to communicate securely with the peer.
 
 Advantages:
 
-- [X] Chaincode runs _immediately_ on channel commit.
-- [X] k8s-builder avoids the complexity and administrative burdens associated with Chaincode-as-a-Service. 
-- [X] Pre-published chaincode images avoid code-compilation errors at deployment time.
-- [X] Pre-published chaincode images encourage modern, industry accepted CI/CD best practices.
-- [X] Pre-published chaincode images remove any and all dependencies on a root-level _docker daemon_.
-- [X] Pre-published chaincode images provide traceability and change management features (e.g. Git commit hash as image tag)
+- 🚀 Chaincode runs _immediately_ on channel commit.
+- ✨ Avoids the complexity and administrative burdens associated with Chaincode-as-a-Service. 
+- 🔥 Pre-published chaincode images avoid code-compilation errors at deployment time.
+- 🏗️ Pre-published chaincode images encourage modern, industry accepted CI/CD best practices.
+- 🛡️ Pre-published chaincode images remove any and all dependencies on a root-level _docker daemon_.
+- 🕵️ Pre-published chaincode images provide traceability and change management features (e.g. Git commit hash as image tag)
 
 The aim is for the builder to work as closely as possible with the existing [Fabric chaincode lifecycle](https://hyperledger-fabric.readthedocs.io/en/latest/chaincode_lifecycle.html), making sensible compromises for deploying chaincode on Kubernetes within those constraints.
 (The assumption being that there are more people with Kubernetes skills than are familiar with the inner workings of Fabric!)
@@ -38,13 +38,8 @@ For example:
   Unfortunately due to limitations in Fabric's builder and launcher implementation, that is not possible and the peer expects to control the chaincode process.
 
 
-**Status:** the k8s builder has been tested in a number of Kubernetes environments, deployment platforms, and
-provides semantic-revision aware [release tags](https://github.com/hyperledger-labs/fabric-builder-k8s/tags) for the
-external builder binaries.  The current status should be considered as STABLE and any bugs or enhancements delivered as
-GitHub Issues in conjunction with community PRs.
-
-With the k8s-builder, _chaincode just works!_
-
+**Status:** the k8s builder is [close to a version 1 release](https://github.com/hyperledger-labs/fabric-builder-k8s/milestone/1) and has been tested in a number of Kubernetes environments, deployment platforms, and provides semantic-revision aware [release tags](https://github.com/hyperledger-labs/fabric-builder-k8s/tags) for the external builder binaries.
+The current status should be considered as STABLE and any bugs or enhancements delivered as GitHub Issues in conjunction with community PRs.
 
 ## Usage
 
@@ -74,6 +69,8 @@ External builders are configured in the `core.yaml` file, for example:
 ```
 
 See [External Builders and Launchers](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html) for details of Hyperledger Fabric builders.
+
+As well as configuring Fabric to use the k8s builder, you will need to [configure Kubernetes](docs/KUBERNETES_CONFIG.md) to allow the builder to start chaincode pods successfully.
 
 There are addition docs with more detailed usage instructions for specific Fabric network deployments:
 
