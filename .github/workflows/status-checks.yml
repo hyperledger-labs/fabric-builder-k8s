@@ -1,0 +1,19 @@
+name: ci
+
+on:
+  pull_request:
+    paths:
+      - '*.md'
+      - 'docs/**'
+      - 'samples/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No lint required"'
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No build required"'
