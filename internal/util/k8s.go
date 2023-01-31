@@ -150,6 +150,7 @@ func WaitForChaincodePod(
 	pod *apiv1.Pod,
 	chaincodeID string,
 ) error {
+	var unused bool
 	logger.Debugf("Waiting for pod %s/%s for chaincode ID %s", pod.Namespace, pod.Name, chaincodeID)
 
 	_, err := waitForPodRunning(ctx, time.Minute, podsClient, pod.Name, pod.Namespace)
