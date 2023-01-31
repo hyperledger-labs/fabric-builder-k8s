@@ -1,4 +1,4 @@
-name: ci
+name: Skip status checks
 
 on:
   pull_request:
@@ -14,6 +14,14 @@ jobs:
       - run: 'echo "No lint required"'
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        goarch: [amd64]
     steps:
       - run: 'echo "No build required"'
+
+  docker_build:
+    name: Docker build
+    uses: ./.github/workflows/status-checks-docker.yml
