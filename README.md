@@ -1,23 +1,24 @@
 # fabric-builder-k8s
 
-Kubernetes [external chaincode builder](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html)
-for Hyperledger Fabric.
+Kubernetes [external chaincode builder](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html) for Hyperledger Fabric.
 
-With the k8s builder, the Fabric administrator is responsible for preparing a chaincode image, publishing to a
-container registry, and preparing a [chaincode package](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html#chaincode-packages)
-with coordinates of the contract's immutable image digest.  When Fabric detects the installation of a `type=k8s`
-contract, the builder assumes full ownership of the lifecycle of pods, containers, and network linkages necessary 
-to communicate securely with the peer.
+With the k8s builder, the Fabric administrator is responsible for [preparing a chaincode image](#chaincode-docker-image), publishing to a container registry, and [preparing a chaincode package](#chaincode-package) with coordinates of the contract's immutable image digest.
+When Fabric detects the installation of a `type=k8s` contract, the builder assumes full ownership of the lifecycle of pods, containers, and network linkages necessary to communicate securely with the peer.
 
 
 Advantages:
 
-- 🚀 Chaincode runs _immediately_ on channel commit.
-- ✨ Avoids the complexity and administrative burdens associated with Chaincode-as-a-Service. 
-- 🔥 Pre-published chaincode images avoid code-compilation errors at deployment time.
-- 🏗️ Pre-published chaincode images encourage modern, industry accepted CI/CD best practices.
-- 🛡️ Pre-published chaincode images remove any and all dependencies on a root-level _docker daemon_.
-- 🕵️ Pre-published chaincode images provide traceability and change management features (e.g. Git commit hash as image tag)
+🚀 Chaincode runs _immediately_ on channel commit.
+
+✨ Avoids the complexity and administrative burdens associated with Chaincode-as-a-Service.
+
+🔥 Pre-published chaincode images avoid code-compilation errors at deployment time.
+
+🏗️ Pre-published chaincode images encourage modern, industry accepted CI/CD best practices.
+
+🛡️ Pre-published chaincode images remove any and all dependencies on a root-level _docker daemon_.
+
+🕵️ Pre-published chaincode images provide traceability and change management features (e.g. Git commit hash as image tag)
 
 The aim is for the builder to work as closely as possible with the existing [Fabric chaincode lifecycle](https://hyperledger-fabric.readthedocs.io/en/latest/chaincode_lifecycle.html), making sensible compromises for deploying chaincode on Kubernetes within those constraints.
 (The assumption being that there are more people with Kubernetes skills than are familiar with the inner workings of Fabric!)
