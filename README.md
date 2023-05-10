@@ -171,7 +171,7 @@ Deploy the chaincode package as usual, starting by installing the k8s chaincode 
 peer lifecycle chaincode install go-contract.tgz
 ```
 
-You can also user the `peer` command to get the chaincode package ID.
+You can also use the `peer` command to get the chaincode package ID.
 
 ```shell
 export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid go-contract.tgz) && echo $PACKAGE_ID
