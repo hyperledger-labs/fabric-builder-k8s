@@ -30,15 +30,15 @@ type CmdLogger struct {
 
 type nilLogger struct{}
 
-func (nl *nilLogger) Print(v ...interface{}) {
+func (nl *nilLogger) Print(_ ...interface{}) {
 	// do nothing
 }
 
-func (nl *nilLogger) Printf(format string, v ...interface{}) {
+func (nl *nilLogger) Printf(_ string, _ ...interface{}) {
 	// do nothing
 }
 
-func (nl *nilLogger) Println(v ...interface{}) {
+func (nl *nilLogger) Println(_ ...interface{}) {
 	// do nothing
 }
 
