@@ -10,7 +10,6 @@ linters:
     - contextcheck
     - cyclop
     - decorder
-    - depguard
     - dogsled
     - dupl
     - durationcheck
@@ -87,3 +86,9 @@ linters-settings:
   nolintlint:
     require-explanation: true
     require-specific: true
+issues:
+  exclude-rules:
+    - path: _test\.go
+      text: "dot-imports"
+      linters:
+        - revive

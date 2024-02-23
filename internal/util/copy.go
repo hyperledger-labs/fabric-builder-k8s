@@ -66,7 +66,7 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 	}
 
 	opt := copy.Options{
-		Skip: func(src string) (bool, error) {
+		Skip: func(_ os.FileInfo, src, _ string) (bool, error) {
 			return !strings.HasSuffix(src, ".json"), nil
 		},
 	}
