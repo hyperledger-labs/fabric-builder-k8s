@@ -41,7 +41,7 @@ func CopyImageJSON(logger *log.CmdLogger, src, dest string) error {
 
 // CopyIndexFiles copies CouchDB index definitions from source to destination directories.
 func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
-	indexDir := filepath.Join("statedb", "couchdb", "indexes")
+	indexDir := filepath.Join("statedb", "couchdb")
 	indexSrcDir := filepath.Join(src, MetadataDir, indexDir)
 	indexDestDir := filepath.Join(dest, indexDir)
 
@@ -67,7 +67,22 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 
 	opt := copy.Options{
 		Skip: func(_ os.FileInfo, src, _ string) (bool, error) {
-			return !strings.HasSuffix(src, ".json"), nil
+			logger.Debugf("Source folder to check and skip copy: %s", src)
+			fileInfo, err := os.Lstat(src)
+			if err != nil {
+				return true, fmt.Errorf(
+					"failed to create CouchDB index definitions from folder %s: %w",
+					src,
+					err,
+				)
+			}
+			if fileInfo.IsDir() { // copy it recursively
+				logger.Debugf("This is a folder: %s", src)
+				return false, nil
+			} else { // any file that will not be a JSON will be skipped
+				logger.Debugf("This is a file: %s", src)
+				return !strings.HasSuffix(src, ".json"), nil
+			}
 		},
 	}
 
