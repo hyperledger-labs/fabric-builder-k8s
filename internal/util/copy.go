@@ -78,10 +78,9 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 			}
 
 			if info.IsDir() {
-				logger.Debugf("This is a folder, copying: %s", src)
-
-				return false, nil
+				return skipFolder(logger, indexSrcDir, src)
 			}
+
 			logger.Debugf("Checking if it is a JSON file: %s", src)
 
 			return !strings.HasSuffix(src, ".json"), nil
@@ -98,6 +97,45 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 	}
 
 	return nil
+}
+
+// skipFolder checks if the folder will need to be skipped during indexes copy.
+func skipFolder(logger *log.CmdLogger, indexSrcDir, src string) (bool, error) {
+	path, _ := filepath.Rel(indexSrcDir, src)
+
+	matchContainsPublicIndexFolder, _ := filepath.Match("index*", path)
+	matchContainsPrivateDataCollectionFolder, _ := filepath.Match("collections*", path)
+	matchPrivateDataCollectionFolder, _ := filepath.Match("collections/*", path)
+	matchPrivateDataCollectionIndexFolder, _ := filepath.Match("collections/*/indexes", path)
+	relativeFoldersLength := len(strings.Split(path, "/"))
+
+	logger.Debugf("relative path: %s, total relative folders: %d", path, relativeFoldersLength)
+	logger.Debugf("Match pattern - index*: %t", matchContainsPublicIndexFolder)
+	logger.Debugf("Match pattern - collections*: %t", matchContainsPrivateDataCollectionFolder)
+	logger.Debugf("Match pattern - collections/*: %t", matchPrivateDataCollectionFolder)
+	logger.Debugf("Match pattern - collections/*/indexes: %t", matchPrivateDataCollectionIndexFolder)
+
+	switch {
+	case relativeFoldersLength == 1 && (!matchContainsPublicIndexFolder && !matchContainsPrivateDataCollectionFolder):
+		logger.Debugf("Should skip folder")
+
+		return true, nil
+
+	case relativeFoldersLength == 2 && (!matchPrivateDataCollectionFolder):
+		logger.Debugf("Should skip folder")
+
+		return true, nil
+
+	case relativeFoldersLength == 3 && (!matchPrivateDataCollectionIndexFolder):
+		logger.Debugf("Should skip folder")
+
+		return true, nil
+
+	default:
+		logger.Debugf("Should NOT skip folder")
+
+		return false, nil
+	}
 }
 
 // CopyMetadataDir copies all chaincode metadata from source to destination directories.
