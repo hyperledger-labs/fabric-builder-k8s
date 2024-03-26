@@ -67,7 +67,7 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 
 	opt := copy.Options{
 		Skip: func(_ os.FileInfo, src, _ string) (bool, error) {
-			logger.Debugf("Source folder to check and skip copy: %s", src)
+			logger.Debugf("Checking source copy path: %s", src)
 			fileInfo, err := os.Lstat(src)
 			if err != nil {
 				return true, fmt.Errorf(
@@ -77,11 +77,16 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 				)
 			}
 			if fileInfo.IsDir() { // copy it recursively
-				logger.Debugf("This is a folder: %s", src)
+				logger.Debugf("This is a folder, copying: %s", src)
 				return false, nil
-			} else { // any file that will not be a JSON will be skipped
-				logger.Debugf("This is a file: %s", src)
-				return !strings.HasSuffix(src, ".json"), nil
+			} else { // any non JSON will be skipped
+				isJsonFile := strings.HasSuffix(src, ".json")
+				if isJsonFile {
+					logger.Debugf("This is a JSON file, copying: %s", src)
+				} else {
+					logger.Debugf("This is NOT a JSON file, skipping copy: %s", src)
+				}
+				return !isJsonFile, nil
 			}
 		},
 	}
