@@ -74,7 +74,7 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 				return skip, nil
 			}
 
-			skip, err := skipFile(indexSrcDir, src)
+			skip, err := skipFile(logger, indexSrcDir, src)
 			if err != nil {
 				return skip, fmt.Errorf(
 					"error checking if the file is eligible to have a couchdb index: %s, %s: %w",
@@ -133,9 +133,12 @@ func CopyMetadataDir(logger *log.CmdLogger, src, dest string) error {
 	return nil
 }
 
-func skipFile(indexSrcDir, src string) (bool, error) {
+// skipFile checks if the file will need to be skipped during indexes copy.
+func skipFile(logger *log.CmdLogger, indexSrcDir, src string) (bool, error) {
 	path, err := filepath.Rel(indexSrcDir, src)
 	if err != nil {
+		logger.Debugf("error verifying relative path from: %s, src: %s", indexSrcDir, src)
+
 		return true, fmt.Errorf(
 			"error verifying relative path from %s to %s: %w",
 			indexSrcDir,
@@ -145,10 +148,20 @@ func skipFile(indexSrcDir, src string) (bool, error) {
 	}
 
 	if len(strings.Split(path, string(filepath.Separator))) == 1 { // JSON is in root couchdb folder
+		logger.Debugf("The JSON file in the root couchdb index folder, should skip: %s, src: %s", path, src)
+
 		return true, nil
 	}
 
-	return !strings.HasSuffix(src, ".json"), nil
+	if strings.HasSuffix(src, ".json") {
+		logger.Debugf("The JSON file is valid, should copy: %s, src: %s", path, src)
+
+		return false, nil
+	}
+
+	logger.Debugf("The JSON file is invalid, should skip: %s, src: %s", path, src)
+
+	return true, nil
 }
 
 // skipFolder checks if the folder will need to be skipped during indexes copy.
