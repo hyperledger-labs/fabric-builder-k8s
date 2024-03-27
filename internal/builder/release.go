@@ -19,7 +19,7 @@ func (r *Release) Run(ctx context.Context) error {
 	logger.Debugln("Releasing chaincode...")
 
 	// If CouchDB index definitions are required for the chaincode, release is
-	// responsible for placing the indexes into the statedb/couchdb/indexes
+	// responsible for placing the indexes into the statedb/couchdb/
 	// directory under RELEASE_OUTPUT_DIR. The indexes must have a .json
 	// extension.
 	err := util.CopyIndexFiles(logger, r.BuildOutputDirectory, r.ReleaseOutputDirectory)

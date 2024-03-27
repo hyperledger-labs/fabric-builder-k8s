@@ -41,19 +41,27 @@ func CopyImageJSON(logger *log.CmdLogger, src, dest string) error {
 
 // CopyIndexFiles copies CouchDB index definitions from source to destination directories.
 func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
+	logger.Debugf("Copying couchdb index files from %s to %s", src, dest)
+
+	_, err := os.Lstat(src)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// indexes are optional
+			return nil
+		}
+
+		return err
+	}
+
 	indexDir := filepath.Join("statedb", "couchdb")
 	indexSrcDir := filepath.Join(src, MetadataDir, indexDir)
 	indexDestDir := filepath.Join(dest, indexDir)
 
-	logger.Debugf("Copying CouchDB index definitions from %s to %s", indexSrcDir, indexDestDir)
-
 	opt := copy.Options{
 		Skip: func(info os.FileInfo, src, _ string) (bool, error) {
 			logger.Debugf("Checking source copy path: %s", src)
-
 			if info.IsDir() {
 				skip, err := skipFolder(logger, indexSrcDir, src)
-
 				if err != nil {
 					return skip, fmt.Errorf(
 						"error checking if the folder is eligible to have a couchdb index: %s, %s: %w",
@@ -66,9 +74,17 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 				return skip, nil
 			}
 
-			logger.Debugf("Checking if it is a JSON file: %s", src)
+			skip, err := skipFile(indexSrcDir, src)
+			if err != nil {
+				return skip, fmt.Errorf(
+					"error checking if the file is eligible to have a couchdb index: %s, %s: %w",
+					indexSrcDir,
+					src,
+					err,
+				)
+			}
 
-			return !strings.HasSuffix(src, ".json"), nil
+			return skip, nil
 		},
 	}
 
@@ -82,89 +98,6 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 	}
 
 	return nil
-}
-
-// skipFolder checks if the folder will need to be skipped during indexes copy.
-func skipFolder(logger *log.CmdLogger, indexSrcDir, src string) (bool, error) {
-	path, err := filepath.Rel(indexSrcDir, src)
-
-	if err != nil {
-		return true, fmt.Errorf(
-			"error resolving the relative path: %s, %s: %w",
-			indexSrcDir,
-			src,
-			err,
-		)
-	}
-
-	matchContainsPublicIndexFolder, err := filepath.Match("indexes", path)
-
-	if err != nil {
-		return true, fmt.Errorf(
-			"error matching the path with public index couchdb folder: %s: %w",
-			path,
-			err,
-		)
-	}
-
-	matchContainsPrivateDataCollectionFolder, err := filepath.Match("collections", path)
-
-	if err != nil {
-		return true, fmt.Errorf(
-			"error matching the path with the collection folder: %s: %w",
-			path,
-			err,
-		)
-	}
-
-	matchPrivateDataCollectionFolder, err := filepath.Match("collections/*", path)
-
-	if err != nil {
-		return true, fmt.Errorf(
-			"error matching the path with the private data collection definition folder: %s: %w",
-			path,
-			err,
-		)
-	}
-
-	matchPrivateDataCollectionIndexFolder, err := filepath.Match("collections/*/indexes", path)
-
-	if err != nil {
-		return true, fmt.Errorf(
-			"error matching the path with the private data collection index definition folder: %s: %w",
-			path,
-			err,
-		)
-	}
-	relativeFoldersLength := len(strings.Split(path, string(filepath.Separator)))
-
-	logger.Debugf("relative path: %s, total relative folders: %d", path, relativeFoldersLength)
-	logger.Debugf("Match pattern - index: %t", matchContainsPublicIndexFolder)
-	logger.Debugf("Match pattern - collections: %t", matchContainsPrivateDataCollectionFolder)
-	logger.Debugf("Match pattern - collections/*: %t", matchPrivateDataCollectionFolder)
-	logger.Debugf("Match pattern - collections/*/indexes: %t", matchPrivateDataCollectionIndexFolder)
-
-	switch {
-	case relativeFoldersLength == 1 && (!matchContainsPublicIndexFolder && !matchContainsPrivateDataCollectionFolder):
-		logger.Debugf("Should skip folder")
-
-		return true, nil
-
-	case relativeFoldersLength == 2 && (!matchPrivateDataCollectionFolder):
-		logger.Debugf("Should skip folder")
-
-		return true, nil
-
-	case relativeFoldersLength == 3 && (!matchPrivateDataCollectionIndexFolder):
-		logger.Debugf("Should skip folder")
-
-		return true, nil
-
-	default:
-		logger.Debugf("Should NOT skip folder")
-
-		return false, nil
-	}
 }
 
 // CopyMetadataDir copies all chaincode metadata from source to destination directories.
@@ -198,4 +131,66 @@ func CopyMetadataDir(logger *log.CmdLogger, src, dest string) error {
 	}
 
 	return nil
+}
+
+func skipFile(indexSrcDir, src string) (bool, error) {
+	path, err := filepath.Rel(indexSrcDir, src)
+	if err != nil {
+		return true, fmt.Errorf(
+			"error verifying relative path from %s to %s: %w",
+			indexSrcDir,
+			src,
+			err,
+		)
+	}
+
+	if len(strings.Split(path, string(filepath.Separator))) == 1 { // JSON is in root couchdb folder
+		return true, nil
+	}
+
+	return !strings.HasSuffix(src, ".json"), nil
+}
+
+// skipFolder checks if the folder will need to be skipped during indexes copy.
+func skipFolder(logger *log.CmdLogger, indexSrcDir, src string) (bool, error) {
+	path, err := filepath.Rel(indexSrcDir, src)
+	if err != nil {
+		logger.Debugf("failed resolve relative path: %s, src: %s", indexSrcDir, src)
+
+		return true, fmt.Errorf("failed resolve relative path %s to %s: %w", indexSrcDir, src, err)
+	}
+
+	matchContainsPublicIndexFolder, _ := filepath.Match("indexes", path)
+	matchContainsPrivateDataCollectionFolder, _ := filepath.Match("collections", path)
+	matchPrivateDataCollectionFolder, _ := filepath.Match("collections/*", path)
+	matchPrivateDataCollectionIndexFolder, _ := filepath.Match("collections/*/indexes", path)
+	relativeFoldersLength := len(strings.Split(path, string(filepath.Separator)))
+
+	logger.Debugf("Calculated relative path: %s. Total relative folders: %d", path, relativeFoldersLength)
+	logger.Debugf("Match pattern 'index': %t", matchContainsPublicIndexFolder)
+	logger.Debugf("Match pattern 'collections': %t", matchContainsPrivateDataCollectionFolder)
+	logger.Debugf("Match pattern 'collections/*': %t", matchPrivateDataCollectionFolder)
+	logger.Debugf("Match pattern 'collections/*/indexes': %t", matchPrivateDataCollectionIndexFolder)
+
+	switch {
+	case relativeFoldersLength == 1 && (!matchContainsPublicIndexFolder && !matchContainsPrivateDataCollectionFolder):
+		logger.Debugf("Should skip folder")
+
+		return true, nil
+
+	case relativeFoldersLength == 2 && (!matchPrivateDataCollectionFolder):
+		logger.Debugf("Should skip folder")
+
+		return true, nil
+
+	case relativeFoldersLength == 3 && (!matchPrivateDataCollectionIndexFolder):
+		logger.Debugf("Should skip folder")
+
+		return true, nil
+
+	default:
+		logger.Debugf("Should not skip folder")
+
+		return false, nil
+	}
 }
