@@ -47,38 +47,23 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 
 	logger.Debugf("Copying CouchDB index definitions from %s to %s", indexSrcDir, indexDestDir)
 
-	fileInfo, err := os.Lstat(indexSrcDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// indexes are optional
-			return nil
-		}
-
-		return err
-	}
-
-	if !fileInfo.IsDir() {
-		return fmt.Errorf(
-			"CouchDB index definitions path %s is not a directory: %w",
-			indexSrcDir,
-			err,
-		)
-	}
-
 	opt := copy.Options{
 		Skip: func(info os.FileInfo, src, _ string) (bool, error) {
 			logger.Debugf("Checking source copy path: %s", src)
 
-			if err != nil {
-				return true, fmt.Errorf(
-					"failed to create CouchDB index definitions from folder %s: %w",
-					src,
-					err,
-				)
-			}
-
 			if info.IsDir() {
-				return skipFolder(logger, indexSrcDir, src)
+				skip, err := skipFolder(logger, indexSrcDir, src)
+
+				if err != nil {
+					return skip, fmt.Errorf(
+						"error checking if the folder is eligible to have a couchdb index: %s, %s: %w",
+						indexSrcDir,
+						src,
+						err,
+					)
+				}
+
+				return skip, nil
 			}
 
 			logger.Debugf("Checking if it is a JSON file: %s", src)
@@ -101,17 +86,61 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 
 // skipFolder checks if the folder will need to be skipped during indexes copy.
 func skipFolder(logger *log.CmdLogger, indexSrcDir, src string) (bool, error) {
-	path, _ := filepath.Rel(indexSrcDir, src)
+	path, err := filepath.Rel(indexSrcDir, src)
 
-	matchContainsPublicIndexFolder, _ := filepath.Match("index*", path)
-	matchContainsPrivateDataCollectionFolder, _ := filepath.Match("collections*", path)
-	matchPrivateDataCollectionFolder, _ := filepath.Match("collections/*", path)
-	matchPrivateDataCollectionIndexFolder, _ := filepath.Match("collections/*/indexes", path)
-	relativeFoldersLength := len(strings.Split(path, "/"))
+	if err != nil {
+		return true, fmt.Errorf(
+			"error resolving the relative path: %s, %s: %w",
+			indexSrcDir,
+			src,
+			err,
+		)
+	}
+
+	matchContainsPublicIndexFolder, err := filepath.Match("indexes", path)
+
+	if err != nil {
+		return true, fmt.Errorf(
+			"error matching the path with public index couchdb folder: %s: %w",
+			path,
+			err,
+		)
+	}
+
+	matchContainsPrivateDataCollectionFolder, err := filepath.Match("collections", path)
+
+	if err != nil {
+		return true, fmt.Errorf(
+			"error matching the path with the collection folder: %s: %w",
+			path,
+			err,
+		)
+	}
+
+	matchPrivateDataCollectionFolder, err := filepath.Match("collections/*", path)
+
+	if err != nil {
+		return true, fmt.Errorf(
+			"error matching the path with the private data collection definition folder: %s: %w",
+			path,
+			err,
+		)
+	}
+
+	matchPrivateDataCollectionIndexFolder, err := filepath.Match("collections/*/indexes", path)
+
+	if err != nil {
+		return true, fmt.Errorf(
+			"error matching the path with the private data collection index definition folder: %s: %w",
+			path,
+			err,
+		)
+	}
+	relativeFoldersLength := len(strings.Split(path, string(filepath.Separator)))
 
 	logger.Debugf("relative path: %s, total relative folders: %d", path, relativeFoldersLength)
-	logger.Debugf("Match pattern - index*: %t", matchContainsPublicIndexFolder)
-	logger.Debugf("Match pattern - collections*: %t", matchContainsPrivateDataCollectionFolder)
+	logger.Debugf("Match pattern - index: %t", matchContainsPublicIndexFolder)
+	logger.Debugf("Match pattern - collections: %t", matchContainsPrivateDataCollectionFolder)
 	logger.Debugf("Match pattern - collections/*: %t", matchPrivateDataCollectionFolder)
 	logger.Debugf("Match pattern - collections/*/indexes: %t", matchPrivateDataCollectionIndexFolder)
 
