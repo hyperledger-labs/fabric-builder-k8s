@@ -48,8 +48,16 @@ var _ = Describe("Main", func() {
 
 		indexPath := filepath.Join(tempDir, "statedb", "couchdb", "indexes", "indexOwner.json")
 		Expect(indexPath).To(BeARegularFile())
+
+		assetPrivateDataCollectionIndexPath := filepath.Join(tempDir, "statedb", "couchdb", "collections", "assetCollection", "indexes", "indexOwner.json")
+		Expect(assetPrivateDataCollectionIndexPath).To(BeARegularFile(), "Private data index should be copied")
+
+		fabCarPrivateDataCollectionIndexPath := filepath.Join(tempDir, "statedb", "couchdb", "collections", "fabCarCollection", "indexes", "indexOwner.json")
+		Expect(fabCarPrivateDataCollectionIndexPath).To(BeARegularFile(), "Private data index should be copied")
+
 		textPath := filepath.Join(tempDir, "statedb", "couchdb", "indexes", "test.txt")
-		Expect(textPath).NotTo(BeAnExistingFile())
+		Expect(textPath).NotTo(BeAnExistingFile(), "Unexpected files should not be copied")
+
 		subdirPath := filepath.Join(
 			tempDir,
 			"statedb",
@@ -58,6 +66,55 @@ var _ = Describe("Main", func() {
 			"subdir",
 			"indexOwner.json",
 		)
-		Expect(subdirPath).NotTo(BeAnExistingFile())
+		Expect(subdirPath).NotTo(BeAnExistingFile(), "Files outside indexes directory should not be copied")
+
+		privateDataCollectionSubdirPath := filepath.Join(
+			tempDir,
+			"statedb",
+			"couchdb",
+			"collections",
+			"fabCarCollection",
+			"subdir",
+			"indexes",
+			"indexOwner.json",
+		)
+		Expect(privateDataCollectionSubdirPath).NotTo(BeAnExistingFile(), "Files outside indexes directory should not be copied")
+
+		collectionsdCollectionPath := filepath.Join(
+			tempDir,
+			"statedb",
+			"couchdb",
+			"collectionsd",
+			"fabCarCollection",
+			"indexes",
+			"indexOwner.json",
+		)
+		Expect(collectionsdCollectionPath).NotTo(BeAnExistingFile(), "Files outside indexes directory should not be copied")
+
+		indexedCollectionSubdirPath := filepath.Join(
+			tempDir,
+			"statedb",
+			"couchdb",
+			"indexed",
+			"indexes",
+			"indexOwner.json",
+		)
+		Expect(indexedCollectionSubdirPath).NotTo(BeAnExistingFile(), "Files outside indexes directory should not be copied")
+
+		rootIndexOwnerJSONFile := filepath.Join(
+			tempDir,
+			"statedb",
+			"couchdb",
+			"indexOwner.json",
+		)
+		Expect(rootIndexOwnerJSONFile).NotTo(BeAnExistingFile(), "Files outside indexes directory should not be copied")
+
+		roottestTXTFile := filepath.Join(
+			tempDir,
+			"statedb",
+			"couchdb",
+			"test.txt",
+		)
+		Expect(roottestTXTFile).NotTo(BeAnExistingFile(), "Files outside indexes directory should not be copied")
 	})
 })
