@@ -18,6 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
 	applycorev1 "k8s.io/client-go/applyconfigurations/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -448,7 +449,22 @@ func CreateChaincodePod(
 		chaincodeData,
 	)
 
-	err := deleteChaincodePod(ctx, logger, podsClient, podName, namespace, chaincodeData)
+	peerPod, err := podsClient.Get(ctx, peerID, metav1.GetOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		logger.Debugf("Unable to get peer pod %s/%s: %s", namespace, peerID, err)
+	}
+
+	if peerPod != nil && peerPod.Namespace == namespace {
+		podDefinition.ObjectMeta.OwnerReferences = []metav1.OwnerReference{
+			*metav1.NewControllerRef(peerPod, schema.GroupVersionKind{
+				Group:   "",
+				Version: "v1",
+				Kind:    "Pod",
+			}),
+		}
+	}
+
+	err = deleteChaincodePod(ctx, logger, podsClient, podName, namespace, chaincodeData)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"unable to delete existing chaincode pod %s/%s for chaincode ID %s: %w",
