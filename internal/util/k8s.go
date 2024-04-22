@@ -4,11 +4,12 @@ package util
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base32"
 	"encoding/base64"
 	"fmt"
+	"hash/fnv"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -29,6 +30,11 @@ import (
 
 const (
 	namespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+
+	// Defaults.
+	DefaultNamespace          string = "default"
+	DefaultObjectNamePrefix   string = "hlfcc"
+	DefaultServiceAccountName string = "default"
 
 	// Mutual TLS auth client key and cert paths in the chaincode container.
 	TLSClientKeyPath      string = "/etc/hyperledger/fabric/client.key"
@@ -302,11 +308,7 @@ func getChaincodePodObject(
 					Name: "certs",
 					VolumeSource: apiv1.VolumeSource{
 						Secret: &apiv1.SecretVolumeSource{
-							SecretName: GetValidName(
-								chaincodeData.MspID,
-								peerID,
-								chaincodeData.ChaincodeID,
-							),
+							SecretName: podName,
 						},
 					},
 				},
@@ -316,11 +318,9 @@ func getChaincodePodObject(
 }
 
 func getChaincodeSecretApplyConfiguration(
-	namespace, peerID string,
+	secretName, namespace, peerID string,
 	chaincodeData *ChaincodeJSON,
 ) *applycorev1.SecretApplyConfiguration {
-	name := GetValidName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID)
-
 	annotations := map[string]string{
 		"fabric-builder-k8s-ccid": chaincodeData.ChaincodeID,
 	}
@@ -343,7 +343,7 @@ func getChaincodeSecretApplyConfiguration(
 	}
 
 	return applycorev1.
-		Secret(name, namespace).
+		Secret(secretName, namespace).
 		WithAnnotations(annotations).
 		WithLabels(labels).
 		WithStringData(data).
@@ -354,10 +354,10 @@ func ApplyChaincodeSecrets(
 	ctx context.Context,
 	logger *log.CmdLogger,
 	secretsClient v1.SecretInterface,
-	namespace, peerID string,
+	secretName, namespace, peerID string,
 	chaincodeData *ChaincodeJSON,
 ) error {
-	secret := getChaincodeSecretApplyConfiguration(namespace, peerID, chaincodeData)
+	secret := getChaincodeSecretApplyConfiguration(secretName, namespace, peerID, chaincodeData)
 
 	result, err := secretsClient.Apply(
 		ctx,
@@ -434,26 +434,25 @@ func CreateChaincodePod(
 	ctx context.Context,
 	logger *log.CmdLogger,
 	podsClient v1.PodInterface,
-	namespace, serviceAccount, peerID string,
+	objectName, namespace, serviceAccount, peerID string,
 	chaincodeData *ChaincodeJSON,
 	imageData *ImageJSON,
 ) (*apiv1.Pod, error) {
-	podName := GetValidName(chaincodeData.MspID, peerID, chaincodeData.ChaincodeID)
 	podDefinition := getChaincodePodObject(
 		imageData,
 		namespace,
 		serviceAccount,
-		podName,
+		objectName,
 		peerID,
 		chaincodeData,
 	)
 
-	err := deleteChaincodePod(ctx, logger, podsClient, podName, namespace, chaincodeData)
+	err := deleteChaincodePod(ctx, logger, podsClient, objectName, namespace, chaincodeData)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"unable to delete existing chaincode pod %s/%s for chaincode ID %s: %w",
 			namespace,
-			podName,
+			objectName,
 			chaincodeData.ChaincodeID,
 			err,
 		)
@@ -463,7 +462,7 @@ func CreateChaincodePod(
 		"Creating chaincode pod for chaincode ID %s: %s/%s",
 		chaincodeData.ChaincodeID,
 		namespace,
-		podName,
+		objectName,
 	)
 
 	pod, err := podsClient.Create(ctx, podDefinition, metav1.CreateOptions{})
@@ -471,7 +470,7 @@ func CreateChaincodePod(
 		return nil, fmt.Errorf(
 			"unable to create chaincode pod %s/%s for chaincode ID %s: %w",
 			namespace,
-			podName,
+			objectName,
 			chaincodeData.ChaincodeID,
 			err,
 		)
@@ -487,13 +486,33 @@ func CreateChaincodePod(
 	return pod, nil
 }
 
-// GetValidName returns a valid RFC 1035 label name.
-func GetValidName(mspID, peerID, chaincodeID string) string {
-	qualifiedChaincodeID := mspID + ":" + peerID + ":" + chaincodeID
-	h := sha256.New()
-	h.Write([]byte(qualifiedChaincodeID))
-	sum := h.Sum(nil)
-	encodedChaincodeID := base32.HexEncoding.WithPadding(base32.NoPadding).EncodeToString(sum)
+// GetValidRfc1035LabelName returns a valid RFC 1035 label name with the format
+// <prefix>-<truncated_chaincode_label>-<chaincode_run_hash>.
+func GetValidRfc1035LabelName(prefix, peerID string, chaincodeData *ChaincodeJSON) string {
+	const (
+		maxRfc1035LabelLength = 63
+		labelSeparators       = 2
+	)
 
-	return "cc-" + strings.ToLower(encodedChaincodeID)
+	runHash := fnv.New64a()
+	runHash.Write([]byte(prefix))
+	runHash.Write([]byte(peerID))
+	runHash.Write([]byte(chaincodeData.PeerAddress))
+	runHash.Write([]byte(chaincodeData.MspID))
+	runHash.Write([]byte(chaincodeData.ChaincodeID))
+	suffix := strings.ToLower(base32.HexEncoding.WithPadding(base32.NoPadding).EncodeToString(runHash.Sum(nil)))
+
+	// Remove unsafe characters from the chaincode package label
+	packageID := NewChaincodePackageID(chaincodeData.ChaincodeID)
+	re := regexp.MustCompile("[^-0-9a-z]")
+	safeLabel := re.ReplaceAllString(strings.ToLower(packageID.Label), "")
+
+	// Make sure the chaincode package label fits in the space available,
+	// taking in to account the prefix, suffix, and two '-' separators
+	maxLabelLength := maxRfc1035LabelLength - len(prefix) - len(suffix) - labelSeparators
+	if maxLabelLength < len(safeLabel) {
+		safeLabel = safeLabel[:maxLabelLength]
+	}
+
+	return prefix + "-" + safeLabel + "-" + suffix
 }

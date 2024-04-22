@@ -1,5 +1,5 @@
 {
-  "chaincode_id": "CHAINCODE_ID",
+  "chaincode_id": "CHAINCODE_LABEL:CHAINCODE_HASH",
   "peer_address": "PEER_ADDRESS",
   "client_cert": "CLIENT_CERT",
   "client_key": "CLIENT_KEY",

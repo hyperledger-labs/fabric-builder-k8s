@@ -17,6 +17,7 @@ type Run struct {
 	KubeconfigPath       string
 	KubeNamespace        string
 	KubeServiceAccount   string
+	KubeNamePrefix       string
 }
 
 func (r *Run) Run(ctx context.Context) error {
@@ -33,6 +34,8 @@ func (r *Run) Run(ctx context.Context) error {
 		return err
 	}
 
+	kubeObjectName := util.GetValidRfc1035LabelName(r.KubeNamePrefix, r.PeerID, chaincodeData)
+
 	clientset, err := util.GetKubeClientset(logger, r.KubeconfigPath)
 	if err != nil {
 		return fmt.Errorf(
@@ -48,6 +51,7 @@ func (r *Run) Run(ctx context.Context) error {
 		ctx,
 		logger,
 		secretsClient,
+		kubeObjectName,
 		r.KubeNamespace,
 		r.PeerID,
 		chaincodeData,
@@ -66,6 +70,7 @@ func (r *Run) Run(ctx context.Context) error {
 		ctx,
 		logger,
 		podsClient,
+		kubeObjectName,
 		r.KubeNamespace,
 		r.KubeServiceAccount,
 		r.PeerID,
