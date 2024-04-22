@@ -7,36 +7,117 @@ import (
 )
 
 var _ = Describe("K8s", func() {
-	Describe("GetValidName", func() {
-		It("should return a string with a maximum of 63 characters", func() {
-			name := util.GetValidName("CongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaOrgMsp", "CongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaOrgPeer0", "fabfabfabfabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b")
-			Expect(len(name)).To(BeNumerically("<=", 63))
+	Describe("GetValidRfc1035LabelName", func() {
+		It("should return names with a maximum of 63 characters", func() {
+			chaincodeData := &util.ChaincodeJSON{
+				ChaincodeID: "fabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "CongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaOrgMsp",
+			}
+			name := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "CongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaOrgPeer0", chaincodeData)
+			Expect(len(name)).To(Equal(63))
 		})
 
-		It("should return a string which starts with an alphabetic character", func() {
-			name := util.GetValidName("GreenCongaOrg", "GreenCongaOrgPeer0", "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b")
+		It("should return names which starts with an alphabetic character", func() {
+			chaincodeData := &util.ChaincodeJSON{
+				ChaincodeID: "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "GreenCongaOrg",
+			}
+			name := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "GreenCongaOrgPeer0", chaincodeData)
 			Expect(name).To(MatchRegexp("^[a-z]"))
 		})
 
-		It("should return a string which ends with an alphanumeric character", func() {
-			name := util.GetValidName("BlueCongaOrg", "BlueCongaOrgPeer0", "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b")
+		It("should return names which end with an alphanumeric character", func() {
+			chaincodeData := &util.ChaincodeJSON{
+				ChaincodeID: "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "BlueCongaOrg",
+			}
+			name := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "BlueCongaOrgPeer0", chaincodeData)
 			Expect(name).To(MatchRegexp("[a-z0-9]$"))
 		})
 
-		It("should return a string which only contains lowercase alphanumeric characters or '-'", func() {
-			name := util.GetValidName("BlueCongaOrg", "BlueCongaOrgPeer0", "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b")
+		It("should return names which only contains lowercase alphanumeric characters or '-'", func() {
+			chaincodeData := &util.ChaincodeJSON{
+				ChaincodeID: "FAB/CAR*:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "BlueCongaOrg",
+			}
+			name := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "BlueCongaOrgPeer0", chaincodeData)
 			Expect(name).To(MatchRegexp("^(?:[a-z0-9]|-)+$"))
 		})
 
-		It("should return different names for different input", func() {
-			name1 := util.GetValidName("GreenCongaOrg", "GreenCongaOrgPeer0", "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b")
-			name2 := util.GetValidName("BlueCongaOrg", "BlueCongaOrgPeer0", "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b")
+		It("should return different names for the same package IDs", func() {
+			chaincodeData1 := &util.ChaincodeJSON{
+				ChaincodeID: "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "GreenCongaOrg",
+			}
+			chaincodeData2 := &util.ChaincodeJSON{
+				ChaincodeID: "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org2.example.org",
+				MspID:       "BlueCongaOrg",
+			}
+			name1 := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "GreenCongaOrgPeer0", chaincodeData1)
+			name2 := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "BlueCongaOrgPeer0", chaincodeData2)
+			Expect(name1).NotTo(Equal(name2))
+		})
+
+		It("should return different names for different package IDs", func() {
+			chaincodeData1 := &util.ChaincodeJSON{
+				ChaincodeID: "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "RedCongaOrg",
+			}
+			chaincodeData2 := &util.ChaincodeJSON{
+				ChaincodeID: "go-contract:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "RedCongaOrg",
+			}
+			name1 := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "RedCongaOrg", chaincodeData1)
+			name2 := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "RedCongaOrg", chaincodeData2)
 			Expect(name1).NotTo(Equal(name2))
 		})
 
 		It("should return deterministic names", func() {
-			name := util.GetValidName("CongaOrg", "CongaOrgPeer0", "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b")
-			Expect(name).To(Equal("cc-ocqvh9ir0mi0ef6urh12f3l0dar6csdmtjfhgbfvdp2d22u109r0"))
+			chaincodeData := &util.ChaincodeJSON{
+				ChaincodeID: "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "CongaOrg",
+			}
+			name := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "CongaOrgPeer0", chaincodeData)
+			Expect(name).To(Equal("hlf-k8sbuilder-ftw-fabcar-iufmagu14f8q4"))
+		})
+
+		It("should return names which start with the specified prefix and a safe version of the chaincode label", func() {
+			chaincodeData := &util.ChaincodeJSON{
+				ChaincodeID: "FAB/CAR*:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "CongaOrg",
+			}
+			name := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "CongaOrgPeer0", chaincodeData)
+			Expect(name).To(HavePrefix("hlf-k8sbuilder-ftw" + "-fabcar-"))
+		})
+
+		It("should return names which end with a 13 character extended hex hash string", func() {
+			chaincodeData := &util.ChaincodeJSON{
+				ChaincodeID: "fabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "CongaOrg",
+			}
+			name := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "CongaOrgPeer0", chaincodeData)
+			Expect(name).To(MatchRegexp("-[0-9a-v]{13}$"))
+		})
+
+		It("should return names with the full prefix and hash, and a truncated chaincode label", func() {
+			chaincodeData := &util.ChaincodeJSON{
+				ChaincodeID: "fabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcarfabfabfabfabcar:cffa266294278404e5071cb91150d550dc0bf855149908a170b1169d6160004b",
+				PeerAddress: "peer0.org1.example.com",
+				MspID:       "CongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaOrgMsp",
+			}
+			name := util.GetValidRfc1035LabelName("hlf-k8sbuilder-ftw", "CongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaCongaOrgPeer0", chaincodeData)
+			Expect(name).To(Equal("hlf-k8sbuilder-ftw-fabfabfabfabcarfabfabfabfabcar-1sufvsaso6m7u"))
 		})
 	})
 })

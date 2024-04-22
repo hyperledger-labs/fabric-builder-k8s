@@ -9,12 +9,14 @@ import (
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/builder"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/log"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
+	"k8s.io/apimachinery/pkg/api/validation"
 )
 
 const (
-	expectedArgsLength      = 3
-	buildOutputDirectoryArg = 1
-	runMetadataDirectoryArg = 2
+	expectedArgsLength          = 3
+	buildOutputDirectoryArg     = 1
+	runMetadataDirectoryArg     = 2
+	maximumKubeNamePrefixLength = 30
 )
 
 func main() {
@@ -50,12 +52,25 @@ func main() {
 	if kubeNamespace == "" {
 		kubeNamespace, err = util.GetKubeNamespace()
 		if err != nil {
-			kubeNamespace = "default"
+			kubeNamespace = util.DefaultNamespace
 		}
 	}
 
-	kubeServiceAccount := util.GetOptionalEnv(util.ChaincodeServiceAccountVariable, "default")
+	kubeServiceAccount := util.GetOptionalEnv(util.ChaincodeServiceAccountVariable, util.DefaultServiceAccountName)
 	logger.Debugf("%s=%s", util.ChaincodeServiceAccountVariable, kubeServiceAccount)
+
+	kubeNamePrefix := util.GetOptionalEnv(util.ObjectNamePrefixVariable, util.DefaultObjectNamePrefix)
+	logger.Debugf("%s=%s", util.ObjectNamePrefixVariable, kubeNamePrefix)
+
+	if len(kubeNamePrefix) > maximumKubeNamePrefixLength {
+		logger.Printf("The FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX environment variable must be a maximum of 30 characters")
+		os.Exit(1)
+	}
+
+	if msgs := validation.NameIsDNS1035Label(kubeNamePrefix, true); len(msgs) > 0 {
+		logger.Printf("The FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX environment variable must be a valid DNS-1035 label: %s", msgs[0])
+		os.Exit(1)
+	}
 
 	run := &builder.Run{
 		BuildOutputDirectory: buildOutputDirectory,
@@ -64,6 +79,7 @@ func main() {
 		KubeconfigPath:       kubeconfigPath,
 		KubeNamespace:        kubeNamespace,
 		KubeServiceAccount:   kubeServiceAccount,
+		KubeNamePrefix:       kubeNamePrefix,
 	}
 
 	if err := run.Run(ctx); err != nil {
