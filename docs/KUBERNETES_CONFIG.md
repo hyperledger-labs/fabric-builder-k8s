@@ -63,7 +63,7 @@ EOF
 3. Check the permissions, e.g.
 
 ```shell
-kubectl auth can-i patch secrets --namespace test-network --as system:serviceaccount:default:default
+kubectl auth can-i patch secrets --namespace default --as system:serviceaccount:default:default
 ```
 
 ## Chaincode requirements
