@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v4
@@ -63,7 +63,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Create package
       uses: hyperledgendary/package-k8s-chaincode-action@ba10aea43e3d4f7991116527faf96e3c2b07abc7
