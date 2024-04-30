@@ -25,7 +25,7 @@ var _ = Describe("Main", func() {
 			Eventually(session).Should(gexec.Exit(expectedErrorCode))
 		},
 		Entry("When there is no chaincode metadata", 0, func() []string {
-			return []string{"BUILD_OUTPUT_DIR", "RELEASE_OUTPUT_DIR"}
+			return []string{"./testdata/buildwithoutindexes", "RELEASE_OUTPUT_DIR"}
 		}),
 		Entry("When there is chaincode metadata", 0, func() []string {
 			return []string{"./testdata/buildwithindexes", tempDir}
