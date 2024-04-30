@@ -41,9 +41,13 @@ func CopyImageJSON(logger *log.CmdLogger, src, dest string) error {
 
 // CopyIndexFiles copies CouchDB index definitions from source to destination directories.
 func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
-	logger.Debugf("Copying couchdb index files from %s to %s", src, dest)
+	indexDir := filepath.Join("statedb", "couchdb")
+	indexSrcDir := filepath.Join(src, MetadataDir, indexDir)
+	indexDestDir := filepath.Join(dest, indexDir)
 
-	_, err := os.Lstat(src)
+	logger.Debugf("Copying couchdb index files from %s to %s", indexSrcDir, indexDestDir)
+
+	_, err := os.Lstat(indexSrcDir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			// indexes are optional
@@ -52,10 +56,6 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 
 		return err
 	}
-
-	indexDir := filepath.Join("statedb", "couchdb")
-	indexSrcDir := filepath.Join(src, MetadataDir, indexDir)
-	indexDestDir := filepath.Join(dest, indexDir)
 
 	opt := copy.Options{
 		Skip: func(info os.FileInfo, src, _ string) (bool, error) {
