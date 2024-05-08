@@ -25,7 +25,7 @@ We use [pull requests](http://help.github.com/pull-requests/) to deliver changes
 1. [Fork the repository](https://guides.github.com/activities/forking/#fork) and create a new branch from `main`.
 2. If you've added code that should be tested, add tests!
 3. If you've added any new features or made breaking changes, update the documentation.
-4. Ensure all the tests pass.
+4. Ensure all the tests pass, using `go test -v ./...`.
 5. Include a descriptive message, and the [Developer Certificate of Origin (DCO) sign-off](https://github.com/probot/dco#how-it-works) on all commit messages.
 6. [Issue a pull request](https://guides.github.com/activities/forking/#making-a-pull-request)!
 7. [GitHub Actions](https://github.com/hyperledger-labs/fabric-builder-k8s/actions) builds must succeed before the pull request can be reviewed and merged.
@@ -34,6 +34,12 @@ We use [pull requests](http://help.github.com/pull-requests/) to deliver changes
 
 Please to try to be consistent with the rest of the code and conform to linting rules where they are provided.
 
+To run the linter, use the following command.
+
+```shell
+golangci-lint run ./...
+```
+
 ## Development environment
 
 There is a [Visual Studio Code Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) which should help develop and test the k8s builder in a consistent development environment.
@@ -41,19 +47,19 @@ It includes a preconfigured nano Fabric test network and minikube which can be u
 
 Build your latest k8s builder changes.
 
-```
+```shell
 GOBIN="${PWD}"/.fabric/builders/k8s_builder/bin go install ./cmd/...
 ```
 
-[Configure kubernetes](./docs/KUBERNETES_CONFIG.md) and export the kubeconfig path.
+[Configure kubernetes permissions](https://labs.hyperledger.org/fabric-builder-k8s/configuring/kubernetes-permissions/) and export the kubeconfig path.
 
-```
+```shell
 export KUBECONFIG_PATH="${HOME}/.kube/config"
 ```
 
 Start the Fabric test network in the `.fabric/test-network-nano-bash` directory.
 
-```
+```shell
 ./network.sh start
 ```
 
@@ -67,7 +73,7 @@ curl -fsSL \
 
 Set up the environment for running peer commands and check everything is working.
 
-```
+```shell
 . ./peer1admin.sh
 peer channel list
 ```
