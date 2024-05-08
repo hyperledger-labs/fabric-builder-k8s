@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 
-	"github.com/bitfield/script"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -68,7 +68,7 @@ var _ = Describe("Main", func() {
 	)
 
 	It(
-		"should start a chaincode pod using the supplied configuration environment variables",
+		"should start a chaincode job using the supplied configuration environment variables",
 		Label("kind"),
 		func() {
 			homedir, err := os.UserHomeDir()
@@ -95,18 +95,25 @@ var _ = Describe("Main", func() {
 			).Should(gbytes.Say(`run \[\d+\] DEBUG: FABRIC_K8S_BUILDER_SERVICE_ACCOUNT=chaincode`))
 			Eventually(
 				session.Err,
-			).Should(gbytes.Say(`run \[\d+\]: Running chaincode ID CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45 in kubernetes pod chaincode/hlfcc-chaincodelabel-f887209uhojj2`))
+			).Should(gbytes.Say(`run \[\d+\]: Running chaincode ID CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45 with kubernetes job chaincode/hlfcc-chaincodelabel-piihcaj6ryttc`))
 
-			pipe := script.Exec(
-				"kubectl wait --for=condition=ready pod --timeout=120s --namespace=chaincode -l fabric-builder-k8s-cclabel=CHAINCODE_LABEL",
-			)
-			_, err = pipe.Stdout()
+			waitArgs := []string{
+				"wait",
+				"--for=jsonpath=.status.ready=1",
+				"job",
+				"--timeout=120s",
+				"--namespace=chaincode",
+				"-l",
+				"fabric-builder-k8s-cclabel=CHAINCODE_LABEL",
+			}
+			waitCommand := exec.Command("kubectl", waitArgs...)
+			waitSession, err := gexec.Start(waitCommand, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(pipe.ExitStatus()).To(Equal(0))
+			Eventually(waitSession).WithTimeout(240 * time.Second).Should(gexec.Exit(0))
 
 			descArgs := []string{
 				"describe",
-				"pod",
+				"job",
 				"--namespace=chaincode",
 				"-l",
 				"fabric-builder-k8s-cclabel=CHAINCODE_LABEL",
@@ -123,9 +130,7 @@ var _ = Describe("Main", func() {
 			Eventually(descSession.Out).Should(gbytes.Say(`fabric-builder-k8s-mspid:\s+MSPID`))
 			Eventually(descSession.Out).Should(gbytes.Say(`fabric-builder-k8s-peeraddress:\s+PEER_ADDRESS`))
 			Eventually(descSession.Out).Should(gbytes.Say(`fabric-builder-k8s-peerid:\s+core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789`))
-			Eventually(
-				descSession.Out,
-			).Should(gbytes.Say(`CORE_CHAINCODE_ID_NAME:\s+CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45`))
+			Eventually(descSession.Out).Should(gbytes.Say(`CORE_CHAINCODE_ID_NAME:\s+CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45`))
 			Eventually(descSession.Out).Should(gbytes.Say(`CORE_PEER_ADDRESS:\s+PEER_ADDRESS`))
 			Eventually(descSession.Out).Should(gbytes.Say(`CORE_PEER_LOCALMSPID:\s+MSPID`))
 		},

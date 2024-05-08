@@ -34,7 +34,7 @@ func (r *Run) Run(ctx context.Context) error {
 		return err
 	}
 
-	kubeObjectName := util.GetValidRfc1035LabelName(r.KubeNamePrefix, r.PeerID, chaincodeData)
+	kubeObjectName := util.GetValidRfc1035LabelName(r.KubeNamePrefix, r.PeerID, chaincodeData, util.ObjectNameSuffixLength+1)
 
 	clientset, err := util.GetKubeClientset(logger, r.KubeconfigPath)
 	if err != nil {
@@ -64,12 +64,12 @@ func (r *Run) Run(ctx context.Context) error {
 		)
 	}
 
-	podsClient := clientset.CoreV1().Pods(r.KubeNamespace)
+	jobsClient := clientset.BatchV1().Jobs(r.KubeNamespace)
 
-	pod, err := util.CreateChaincodePod(
+	job, err := util.CreateChaincodeJob(
 		ctx,
 		logger,
-		podsClient,
+		jobsClient,
 		kubeObjectName,
 		r.KubeNamespace,
 		r.KubeServiceAccount,
@@ -82,11 +82,13 @@ func (r *Run) Run(ctx context.Context) error {
 	}
 
 	logger.Printf(
-		"Running chaincode ID %s in kubernetes pod %s/%s",
+		"Running chaincode ID %s with kubernetes job %s/%s",
 		chaincodeData.ChaincodeID,
-		pod.Namespace,
-		pod.Name,
+		job.Namespace,
+		job.Name,
 	)
 
-	return util.WaitForChaincodePod(ctx, logger, podsClient, pod, chaincodeData.ChaincodeID)
+	batchClient := clientset.BatchV1().RESTClient()
+
+	return util.WaitForChaincodeJob(ctx, logger, batchClient, job, chaincodeData.ChaincodeID)
 }
