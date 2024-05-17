@@ -1,14 +1,20 @@
-site_name: Hyperledger Fabric Chaincode Builder for Kubernetes
-repo_name: hyperledger-labs/fabric-builder-k8s
+site_name: Kubernetes Builder
+site_description: Kubernetes external chaincode builder for Hyperledger Fabric
+repo_name: fabric-builder-k8s
 repo_url: https://github.com/hyperledger-labs/fabric-builder-k8s
-docs_dir: content
+docs_dir: docs
 theme:
   name: material
-  logo: assets/project-logo.png
-  favicon: assets/project-icon.png
+  logo: assets/Hyperledger_Fabric_White.svg
+  favicon: assets/Hyperledger_Fabric_Icon.svg
   icon:
     repo: fontawesome/brands/github
   palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -20,7 +26,7 @@ theme:
       scheme: slate
       toggle:
         icon: material/brightness-4
-        name: Switch to light mode
+        name: Switch to system preference
   features:
   - content.code.copy
   - navigation.expand
@@ -77,5 +83,28 @@ plugins:
 extra:
   version:
     provider: mike
+  social:
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/hyperledger
+      name: Hyperledger Discord
 nav:
-  - Introduction: index.md
+  - About:
+    - Introduction: index.md
+    - Objectives: about/objectives.md
+    - Community: about/community.md
+  - Getting Started:
+    - Quick Start: getting-started/demo.md
+    - Requirements: getting-started/requirements.md
+    - Installation: getting-started/install.md
+    - FAQs: getting-started/faqs.md
+  - Concepts:
+    - Chaincode builder: concepts/chaincode-builder.md
+    - Chaincode image: concepts/chaincode-image.md
+    - Chaincode package: concepts/chaincode-package.md
+  - Configuring:
+    - Configuration overview: configuring/overview.md
+    - Kubernetes permissions: configuring/kubernetes-permissions.md
+    - Kubernetes namespace: configuring/kubernetes-namespace.md
+    - Kubernetes service account: configuring/kubernetes-service-account.md
+  - Tutorials:
+    - Creating a chaincode package: tutorials/package-chaincode.md
