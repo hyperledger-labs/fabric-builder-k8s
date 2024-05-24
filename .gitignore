@@ -15,6 +15,9 @@
 # vendor/
 .idea/
 
+# mkdocs documentation
+/site
+
 .fabric
 
 *.log
