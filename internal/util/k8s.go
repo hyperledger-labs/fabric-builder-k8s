@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/base32"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"hash/fnv"
 	"os"
@@ -226,28 +227,55 @@ func GetKubeNamespace() (string, error) {
 	return string(namespace), nil
 }
 
+func getLabels(chaincodeData *ChaincodeJSON) (map[string]string, error) {
+	packageID := NewChaincodePackageID(chaincodeData.ChaincodeID)
+
+	packageHashBytes, err := hex.DecodeString(packageID.Hash)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding chaincode package hash %s: %w", packageID.Hash, err)
+	}
+
+	encodedPackageHash := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(packageHashBytes)
+
+	return map[string]string{
+		"app.kubernetes.io/name":       "hyperledger-fabric",
+		"app.kubernetes.io/component":  "chaincode",
+		"app.kubernetes.io/created-by": "fabric-builder-k8s",
+		"app.kubernetes.io/managed-by": "fabric-builder-k8s",
+		"fabric-builder-k8s-cclabel":   packageID.Label,
+		"fabric-builder-k8s-cchash":    encodedPackageHash,
+	}, nil
+}
+
+func getAnnotations(peerID string, chaincodeData *ChaincodeJSON) map[string]string {
+	return map[string]string{
+		"fabric-builder-k8s-ccid":        chaincodeData.ChaincodeID,
+		"fabric-builder-k8s-mspid":       chaincodeData.MspID,
+		"fabric-builder-k8s-peeraddress": chaincodeData.PeerAddress,
+		"fabric-builder-k8s-peerid":      peerID,
+	}
+}
+
 func getChaincodePodObject(
 	imageData *ImageJSON,
 	namespace, serviceAccount, podName, peerID string,
 	chaincodeData *ChaincodeJSON,
-) *apiv1.Pod {
+) (*apiv1.Pod, error) {
 	chaincodeImage := imageData.Name + "@" + imageData.Digest
+
+	labels, err := getLabels(chaincodeData)
+	if err != nil {
+		return nil, fmt.Errorf("error getting chaincode job labels for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
+	}
+
+	annotations := getAnnotations(peerID, chaincodeData)
 
 	return &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      podName,
-			Namespace: namespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       "fabric",
-				"app.kubernetes.io/component":  "chaincode",
-				"app.kubernetes.io/created-by": "fabric-builder-k8s",
-				"app.kubernetes.io/managed-by": "fabric-builder-k8s",
-				"fabric-builder-k8s-mspid":     chaincodeData.MspID,
-				"fabric-builder-k8s-peerid":    peerID,
-			},
-			Annotations: map[string]string{
-				"fabric-builder-k8s-ccid": chaincodeData.ChaincodeID,
-			},
+			Name:        podName,
+			Namespace:   namespace,
+			Labels:      labels,
+			Annotations: annotations,
 		},
 		Spec: apiv1.PodSpec{
 			ServiceAccountName: serviceAccount,
@@ -314,16 +342,19 @@ func getChaincodePodObject(
 				},
 			},
 		},
-	}
+	}, nil
 }
 
 func getChaincodeSecretApplyConfiguration(
 	secretName, namespace, peerID string,
 	chaincodeData *ChaincodeJSON,
-) *applycorev1.SecretApplyConfiguration {
-	annotations := map[string]string{
-		"fabric-builder-k8s-ccid": chaincodeData.ChaincodeID,
+) (*applycorev1.SecretApplyConfiguration, error) {
+	labels, err := getLabels(chaincodeData)
+	if err != nil {
+		return nil, fmt.Errorf("error getting chaincode job labels for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
 	}
+
+	annotations := getAnnotations(peerID, chaincodeData)
 
 	data := map[string]string{
 		"peer.crt":       chaincodeData.RootCert,
@@ -333,21 +364,12 @@ func getChaincodeSecretApplyConfiguration(
 		"client.key":     base64.StdEncoding.EncodeToString([]byte(chaincodeData.ClientKey)),
 	}
 
-	labels := map[string]string{
-		"app.kubernetes.io/name":       "fabric",
-		"app.kubernetes.io/component":  "chaincode",
-		"app.kubernetes.io/created-by": "fabric-builder-k8s",
-		"app.kubernetes.io/managed-by": "fabric-builder-k8s",
-		"fabric-builder-k8s-mspid":     chaincodeData.MspID,
-		"fabric-builder-k8s-peerid":    peerID,
-	}
-
 	return applycorev1.
 		Secret(secretName, namespace).
 		WithAnnotations(annotations).
 		WithLabels(labels).
 		WithStringData(data).
-		WithType(apiv1.SecretTypeOpaque)
+		WithType(apiv1.SecretTypeOpaque), nil
 }
 
 func ApplyChaincodeSecrets(
@@ -357,7 +379,10 @@ func ApplyChaincodeSecrets(
 	secretName, namespace, peerID string,
 	chaincodeData *ChaincodeJSON,
 ) error {
-	secret := getChaincodeSecretApplyConfiguration(secretName, namespace, peerID, chaincodeData)
+	secret, err := getChaincodeSecretApplyConfiguration(secretName, namespace, peerID, chaincodeData)
+	if err != nil {
+		return fmt.Errorf("error getting chaincode secret definition for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
+	}
 
 	result, err := secretsClient.Apply(
 		ctx,
@@ -438,7 +463,7 @@ func CreateChaincodePod(
 	chaincodeData *ChaincodeJSON,
 	imageData *ImageJSON,
 ) (*apiv1.Pod, error) {
-	podDefinition := getChaincodePodObject(
+	podDefinition, err := getChaincodePodObject(
 		imageData,
 		namespace,
 		serviceAccount,
@@ -446,8 +471,11 @@ func CreateChaincodePod(
 		peerID,
 		chaincodeData,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("error getting chaincode pod definition for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
+	}
 
-	err := deleteChaincodePod(ctx, logger, podsClient, objectName, namespace, chaincodeData)
+	err = deleteChaincodePod(ctx, logger, podsClient, objectName, namespace, chaincodeData)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"unable to delete existing chaincode pod %s/%s for chaincode ID %s: %w",

@@ -28,9 +28,16 @@ type ImageJSON struct {
 	Digest string `json:"digest"`
 }
 
+// MetadataJSON represents the metadata.json file in the k8s chaincode package.
+type MetadataJSON struct {
+	Label string `json:"label"`
+	Type  string `json:"type"`
+}
+
 const (
 	ChaincodeFile = "chaincode.json"
 	ImageFile     = "image.json"
+	MetadataFile  = "metadata.json"
 	MetadataDir   = "META-INF"
 )
 
@@ -76,4 +83,28 @@ func ReadImageJSON(logger *log.CmdLogger, dir string) (*ImageJSON, error) {
 	}
 
 	return &imageData, nil
+}
+
+// ReadMetadataJSON reads and parses the metadata.json file in the provided directory.
+func ReadMetadataJSON(logger *log.CmdLogger, dir string) (*MetadataJSON, error) {
+	metadataJSONPath := filepath.Join(dir, MetadataFile)
+	logger.Debugf("Reading %s...", metadataJSONPath)
+
+	metadataJSONContents, err := os.ReadFile(metadataJSONPath)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read %s: %w", metadataJSONPath, err)
+	}
+
+	var metadata MetadataJSON
+	if err := json.Unmarshal(metadataJSONContents, &metadata); err != nil {
+		return nil, fmt.Errorf("unable to parse %s: %w", metadataJSONPath, err)
+	}
+
+	logger.Debugf("Label: %s\nType: %s\n", metadata.Label, metadata.Type)
+
+	if len(metadata.Label) == 0 || len(metadata.Type) == 0 {
+		return nil, fmt.Errorf("%s file must contain 'label' and 'type'", metadataJSONPath)
+	}
+
+	return &metadata, nil
 }

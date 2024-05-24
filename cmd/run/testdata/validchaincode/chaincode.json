@@ -1,5 +1,5 @@
 {
-  "chaincode_id": "CHAINCODE_LABEL:CHAINCODE_HASH",
+  "chaincode_id": "CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45",
   "peer_address": "PEER_ADDRESS",
   "client_cert": "CLIENT_CERT",
   "client_key": "CLIENT_KEY",
