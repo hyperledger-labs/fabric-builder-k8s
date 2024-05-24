@@ -24,6 +24,8 @@ The k8s builder will detect chaincode packages which have a type of `k8s`. For e
 }
 ```
 
+The k8s builder uses the chaincode label to label Kubernetes objects, so it must be a [valid Kubernetes label value](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set).
+
 ## code.tar.gz
 
 Unlike other chaincode packages, the source artifacts in a k8s chaincode package do not contain the chaincode source files.
