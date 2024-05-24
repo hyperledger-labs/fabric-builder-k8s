@@ -40,7 +40,7 @@ export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/temp/channel-msp/peerOrganizations/org
 
 ## Download a chaincode package
 
-The [sample contracts for Go, Java, and Node.js](samples/README.md) publish a Docker image which the k8s builder can use _and_ a chaincode package file which can be used with the `peer lifecycle chaincode install` command.
+The [sample contracts for Go, Java, and Node.js](https://github.com/hyperledger-labs/fabric-builder-k8s/tree/main/samples) publish a Docker image which the k8s builder can use _and_ a chaincode package file which can be used with the `peer lifecycle chaincode install` command.
 Use of a pre-generated chaincode package .tgz greatly simplifies the deployment, aligning with standard industry practices for CI/CD and git-ops workflows.
 
 Download a sample chaincode package, e.g. for the Go contract: 

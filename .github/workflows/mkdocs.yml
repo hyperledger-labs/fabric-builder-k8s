@@ -1,10 +1,14 @@
-name: Deploy mkdocs site to Pages
+name: Docs build
 
 on:
   pull_request:
     branches: ["main"]
+    paths:
+      - 'docs/**'
   push:
     branches: ["main"]
+    paths:
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
@@ -41,7 +45,7 @@ jobs:
       - name: Install requirements
         run: pip install -r requirements.txt
       - name: Build with mkdocs
-        run: mkdocs build
+        run: mkdocs build --strict
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
