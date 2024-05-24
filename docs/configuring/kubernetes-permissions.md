@@ -4,6 +4,7 @@ The k8s builder needs sufficient permissions to manage chaincode pods on behalf 
 
 | Resource | Permissions                      |
 | -------- | -------------------------------- |
+| jobs     | get, list, watch, create         |
 | pods     | get, list, watch, create, delete |
 | secrets  | create, patch                    |
 
@@ -23,7 +24,9 @@ rules:
   - apiGroups:
       - ""
       - apps
+      - batch
     resources:
+      - jobs
       - pods
       - configmaps
       - secrets
