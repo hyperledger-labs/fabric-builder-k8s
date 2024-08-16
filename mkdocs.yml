@@ -107,4 +107,5 @@ nav:
     - Kubernetes namespace: configuring/kubernetes-namespace.md
     - Kubernetes service account: configuring/kubernetes-service-account.md
   - Tutorials:
+    - Developing and debuging chaincode: tutorials/develop-chaincode.md
     - Creating a chaincode package: tutorials/package-chaincode.md

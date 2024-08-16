@@ -18,7 +18,8 @@
     "fix": "gts fix",
     "pretest": "npm run compile",
     "postcompile": "npm run lint",
-    "start": "set -x && fabric-chaincode-node start"
+    "start": "set -x && fabric-chaincode-node start",
+    "debug": "set -x && fabric-chaincode-node server --chaincode-address=$CHAINCODE_SERVER_ADDRESS --chaincode-id=$CORE_CHAINCODE_ID_NAME"
   },
   "author": "Hyperledger",
   "license": "Apache-2.0",
