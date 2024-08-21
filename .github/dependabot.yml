@@ -20,3 +20,7 @@ updates:
       - "/samples/go-contract"
    schedule:
      interval: weekly
+ - package-ecosystem: "npm"
+   directory: "/samples/node-contract"
+   schedule:
+     interval: weekly
