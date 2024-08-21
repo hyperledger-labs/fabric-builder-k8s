@@ -24,3 +24,7 @@ updates:
    directory: "/samples/node-contract"
    schedule:
      interval: weekly
+ - package-ecosystem: "gradle"
+   directory: "/samples/java-contract"
+   schedule:
+     interval: weekly
