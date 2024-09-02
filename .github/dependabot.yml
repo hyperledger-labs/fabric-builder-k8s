@@ -15,6 +15,16 @@ updates:
    schedule:
      interval: weekly
  - package-ecosystem: "gomod"
-   directory: "/"
+   directories:
+      - "/"
+      - "/samples/go-contract"
+   schedule:
+     interval: weekly
+ - package-ecosystem: "npm"
+   directory: "/samples/node-contract"
+   schedule:
+     interval: weekly
+ - package-ecosystem: "gradle"
+   directory: "/samples/java-contract"
    schedule:
      interval: weekly
