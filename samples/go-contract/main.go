@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
 type SampleContract struct {
