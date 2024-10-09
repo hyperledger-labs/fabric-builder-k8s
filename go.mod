@@ -34,7 +34,7 @@ require (
 )
 
 require (
-	github.com/bitfield/script v0.22.1
+	github.com/bitfield/script v0.23.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
