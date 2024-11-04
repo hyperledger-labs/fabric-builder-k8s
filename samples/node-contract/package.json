@@ -30,6 +30,6 @@
   },
   "dependencies": {
     "fabric-contract-api": "^2.5.6",
-    "fabric-shim": "^2.5.6"
+    "fabric-shim": "^2.5.7"
   }
 }
