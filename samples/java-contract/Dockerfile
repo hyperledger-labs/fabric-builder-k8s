@@ -2,7 +2,7 @@
 
 ARG JAVA_VER=11
 
-FROM eclipse-temurin:${JAVA_VER}-jdk-alpine as build
+FROM eclipse-temurin:${JAVA_VER}-jdk-alpine AS build
 
 RUN apk add --no-cache \
   dumb-init
@@ -19,9 +19,9 @@ RUN ./gradlew jar
 
 FROM eclipse-temurin:${JAVA_VER}-jre-alpine
 
-LABEL org.opencontainers.image.title "Sample Java Contract"
-LABEL org.opencontainers.image.description "Sample Hyperledger Fabric Java contract for Kubernetes chaincode builder"
-LABEL org.opencontainers.image.source "https://github.com/hyperledger-labs/fabric-builder-k8s/samples/java-contract"
+LABEL org.opencontainers.image.title="Sample Java Contract"
+LABEL org.opencontainers.image.description="Sample Hyperledger Fabric Java contract for Kubernetes chaincode builder"
+LABEL org.opencontainers.image.source="https://github.com/hyperledger-labs/fabric-builder-k8s/samples/java-contract"
 
 WORKDIR /var/hyperledger/java-contract
 

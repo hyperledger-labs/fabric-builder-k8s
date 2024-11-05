@@ -3,7 +3,7 @@
 ARG GO_VER=1.22.0
 ARG ALPINE_VER=3.19
 
-FROM golang:${GO_VER}-alpine${ALPINE_VER} as build
+FROM golang:${GO_VER}-alpine${ALPINE_VER} AS build
 
 RUN apk add --no-cache \
 	bash \
@@ -21,9 +21,9 @@ RUN go install ./...
 
 FROM golang:${GO_VER}-alpine${ALPINE_VER}
 
-LABEL org.opencontainers.image.title "Sample Go Contract"
-LABEL org.opencontainers.image.description "Sample Hyperledger Fabric Go contract for Kubernetes chaincode builder"
-LABEL org.opencontainers.image.source "https://github.com/hyperledger-labs/fabric-builder-k8s/samples/go-contract"
+LABEL org.opencontainers.image.title="Sample Go Contract"
+LABEL org.opencontainers.image.description="Sample Hyperledger Fabric Go contract for Kubernetes chaincode builder"
+LABEL org.opencontainers.image.source="https://github.com/hyperledger-labs/fabric-builder-k8s/samples/go-contract"
 
 COPY --from=build /usr/bin/dumb-init /usr/bin/dumb-init
 COPY --from=build /go/bin/go-contract /usr/bin/go-contract
