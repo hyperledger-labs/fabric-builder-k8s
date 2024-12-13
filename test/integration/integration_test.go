@@ -83,3 +83,25 @@ func TestRunChaincodeWithServiceAccount(t *testing.T) {
 			return ctx
 		}).Feature())
 }
+
+func TestRunChaincodeWithAvailableNodeRole(t *testing.T) {
+	testenv.Test(t, features.NewWithDescription(t.Name()+"Feature", "the builder should run chaincode on a dedicated kubernetes node").
+		Assess(t.Name()+"Assessment", func(ctx context.Context, t *testing.T, _ *envconf.Config) context.Context {
+			t.Helper()
+
+			testscript.Run(t, test.NewTestscriptParams(t, "testdata/dedicated_node_available.txtar", testenv))
+
+			return ctx
+		}).Feature())
+}
+
+func TestRunChaincodeWithoutAvailableNodeRole(t *testing.T) {
+	testenv.Test(t, features.NewWithDescription(t.Name()+"Feature", "the builder should fail to run chaincode if a kubernetes node with the required role is not available").
+		Assess(t.Name()+"Assessment", func(ctx context.Context, t *testing.T, _ *envconf.Config) context.Context {
+			t.Helper()
+
+			testscript.Run(t, test.NewTestscriptParams(t, "testdata/dedicated_node_unavailable.txtar", testenv))
+
+			return ctx
+		}).Feature())
+}

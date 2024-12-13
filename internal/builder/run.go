@@ -5,19 +5,22 @@ package builder
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/log"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
 )
 
 type Run struct {
-	BuildOutputDirectory string
-	RunMetadataDirectory string
-	PeerID               string
-	KubeconfigPath       string
-	KubeNamespace        string
-	KubeServiceAccount   string
-	KubeNamePrefix       string
+	BuildOutputDirectory  string
+	RunMetadataDirectory  string
+	PeerID                string
+	KubeconfigPath        string
+	KubeNamespace         string
+	KubeNodeRole          string
+	KubeServiceAccount    string
+	KubeNamePrefix        string
+	ChaincodeStartTimeout time.Duration
 }
 
 func (r *Run) Run(ctx context.Context) error {
@@ -73,6 +76,7 @@ func (r *Run) Run(ctx context.Context) error {
 		kubeObjectName,
 		r.KubeNamespace,
 		r.KubeServiceAccount,
+		r.KubeNodeRole,
 		r.PeerID,
 		chaincodeData,
 		imageData,
@@ -90,5 +94,5 @@ func (r *Run) Run(ctx context.Context) error {
 
 	batchClient := clientset.BatchV1().RESTClient()
 
-	return util.WaitForChaincodeJob(ctx, logger, batchClient, job, chaincodeData.ChaincodeID)
+	return util.WaitForChaincodeJob(ctx, logger, batchClient, job, chaincodeData.ChaincodeID, r.ChaincodeStartTimeout)
 }
