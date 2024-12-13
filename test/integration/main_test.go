@@ -6,12 +6,17 @@
 package integration_test
 
 import (
+	"context"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/hyperledger-labs/fabric-builder-k8s/cmd"
 	"github.com/hyperledger-labs/fabric-builder-k8s/test"
 	"github.com/rogpeppe/go-internal/testscript"
+	batchv1 "k8s.io/api/batch/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/e2e-framework/klient/k8s/resources"
 	"sigs.k8s.io/e2e-framework/pkg/env"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
@@ -29,14 +34,41 @@ func TestMain(m *testing.M) {
 	clusterName := envconf.RandomName("test-cluster", 16)
 
 	testenv.Setup(
-		envfuncs.CreateCluster(kind.NewProvider(), clusterName),
+		envfuncs.CreateClusterWithConfig(kind.NewProvider(), clusterName, "testdata/kind-config.yaml"),
 		envfuncs.CreateNamespace(envCfg.Namespace()),
 	)
 
 	testenv.Finish(
 		envfuncs.DeleteNamespace(envCfg.Namespace()),
+		// envfuncs.ExportClusterLogs(kindClusterName, "./logs"),
 		envfuncs.DestroyCluster(clusterName),
 	)
+
+	testenv.AfterEachTest(func(ctx context.Context, cfg *envconf.Config, t *testing.T) (context.Context, error) { //nolint:thelper // *testing.T must be last param for TestEnvFunc
+		t.Helper()
+
+		t.Logf("Deleting jobs after test %s", t.Name())
+
+		client, err := cfg.NewClient()
+		if err != nil {
+			return ctx, fmt.Errorf("delete jobs func: %w", err)
+		}
+
+		jobs := new(batchv1.JobList)
+
+		err = client.Resources(cfg.Namespace()).List(ctx, jobs)
+		if err != nil {
+			return ctx, fmt.Errorf("delete jobs func: %w", err)
+		}
+
+		for _, job := range jobs.Items {
+			if err := client.Resources().Delete(ctx, &job, resources.WithDeletePropagation(string(metav1.DeletePropagationBackground))); err != nil {
+				return ctx, fmt.Errorf("delete jobs func: %w", err)
+			}
+		}
+
+		return ctx, nil
+	})
 
 	wm := test.NewWrappedM(m, testenv)
 	os.Exit(testscript.RunMain(wm, map[string]func() int{
