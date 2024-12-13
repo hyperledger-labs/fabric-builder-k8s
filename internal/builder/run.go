@@ -16,6 +16,7 @@ type Run struct {
 	PeerID               string
 	KubeconfigPath       string
 	KubeNamespace        string
+	KubeNodeRole         string
 	KubeServiceAccount   string
 	KubeNamePrefix       string
 }
@@ -73,6 +74,7 @@ func (r *Run) Run(ctx context.Context) error {
 		kubeObjectName,
 		r.KubeNamespace,
 		r.KubeServiceAccount,
+		r.KubeNodeRole,
 		r.PeerID,
 		chaincodeData,
 		imageData,
