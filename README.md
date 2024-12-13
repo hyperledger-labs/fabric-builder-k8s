@@ -1,5 +1,7 @@
 # fabric-builder-k8s
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9817/badge)](https://www.bestpractices.dev/projects/9817)
+
 The Kubernetes [external chaincode builder](https://hyperledger-fabric.readthedocs.io/en/latest/cc_launcher.html) for Hyperledger Fabric (k8s builder) is an alternative to Fabric's legacy built in Docker chaincode builder, which does not work in a Kubernetes deployment, and the preconfigured chaincode-as-a-service builder, which is more suited to chaincode development and test.
 
 For more information, including how to deploy your first chaincode with the k8s builder, see the [k8s builder documentation](https://labs.hyperledger.org/fabric-builder-k8s/).
