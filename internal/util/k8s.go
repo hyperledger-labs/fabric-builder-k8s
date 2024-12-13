@@ -41,6 +41,7 @@ const (
 	DefaultNamespace          string = "default"
 	DefaultObjectNamePrefix   string = "hlfcc"
 	DefaultServiceAccountName string = "default"
+	DefaultStartTimeout       string = "3m"
 
 	// Mutual TLS auth client key and cert paths in the chaincode container.
 	TLSClientKeyPath      string = "/etc/hyperledger/fabric/client.key"
@@ -55,11 +56,12 @@ func waitForJob(
 	client cache.Getter,
 	jobName, namespace string,
 	conditionFunc watchtools.ConditionFunc,
+	timeout time.Duration,
 ) (*batchv1.JobStatus, error) {
 	fieldSelector := fields.OneTermEqualSelector("metadata.name", jobName)
 	listWatch := cache.NewListWatchFromClient(client, "jobs", namespace, fieldSelector)
 
-	ctx, cancel := watchtools.ContextWithOptionalTimeout(ctx, 0)
+	ctx, cancel := watchtools.ContextWithOptionalTimeout(ctx, timeout)
 	defer cancel()
 
 	event, err := watchtools.UntilWithSync(ctx, listWatch, &batchv1.Job{}, nil, conditionFunc)
@@ -79,14 +81,22 @@ func waitForJob(
 	return &job.Status, nil
 }
 
-func waitForJobTermination(
+func waitForJobStart(
 	ctx context.Context,
+	logger *log.CmdLogger,
 	client cache.Getter,
 	jobName, namespace string,
+	timeout time.Duration,
 ) (*batchv1.JobStatus, error) {
-	jobTerminationCondition := func(event watch.Event) (bool, error) {
+	jobStartedCondition := func(event watch.Event) (bool, error) {
+		logger.Debugf("Event for job %s/%s: type=%v, object=%T", namespace, jobName, event.Type, event.Object)
+
 		if event.Type == watch.Deleted {
-			return true, nil
+			return false, fmt.Errorf(
+				"job %s/%s deleted",
+				namespace,
+				jobName,
+			)
 		}
 
 		job, ok := event.Object.(*batchv1.Job)
@@ -99,18 +109,55 @@ func waitForJobTermination(
 			)
 		}
 
-		for _, c := range job.Status.Conditions {
-			if c.Type == batchv1.JobComplete && c.Status == "True" {
-				return true, nil
-			} else if c.Type == batchv1.JobFailed && c.Status == "True" {
-				return true, fmt.Errorf("job %s/%s failed for reason %s: %s", namespace, jobName, c.Reason, c.Message)
-			}
+		logger.Debugf("Status for job %s/%s: active=%v, ready=%v, succeeded=%v, failed=%v", namespace, jobName, job.Status.Active, ptr.Deref(job.Status.Ready, 0), job.Status.Succeeded, job.Status.Failed)
+
+		if job.Status.Active > 0 && ptr.Deref(job.Status.Ready, 0) > 0 && job.Status.Succeeded == 0 && job.Status.Failed == 0 {
+			return true, nil
 		}
 
 		return false, nil
 	}
 
-	return waitForJob(ctx, client, jobName, namespace, jobTerminationCondition)
+	return waitForJob(ctx, client, jobName, namespace, jobStartedCondition, timeout)
+}
+
+func waitForJobTermination(
+	ctx context.Context,
+	logger *log.CmdLogger,
+	client cache.Getter,
+	jobName, namespace string,
+) (*batchv1.JobStatus, error) {
+	jobTerminationCondition := func(event watch.Event) (bool, error) {
+		logger.Debugf("Event for job %s/%s: type=%v, object=%T", namespace, jobName, event.Type, event.Object)
+
+		if event.Type == watch.Deleted {
+			return false, fmt.Errorf(
+				"job %s/%s deleted",
+				namespace,
+				jobName,
+			)
+		}
+
+		job, ok := event.Object.(*batchv1.Job)
+		if !ok {
+			return false, fmt.Errorf(
+				"event contained unexpected object %T while watching job %s/%s",
+				job,
+				namespace,
+				jobName,
+			)
+		}
+
+		logger.Debugf("Status for job %s/%s: active=%v, ready=%v, succeeded=%v, failed=%v", namespace, jobName, job.Status.Active, ptr.Deref(job.Status.Ready, 0), job.Status.Succeeded, job.Status.Failed)
+
+		if job.Status.Succeeded == 1 || job.Status.Failed == 1 {
+			return true, nil
+		}
+
+		return false, nil
+	}
+
+	return waitForJob(ctx, client, jobName, namespace, jobTerminationCondition, 0)
 }
 
 func WaitForChaincodeJob(
@@ -119,10 +166,24 @@ func WaitForChaincodeJob(
 	client cache.Getter,
 	job *batchv1.Job,
 	chaincodeID string,
+	chaincodeStartTimeout time.Duration,
 ) error {
+	logger.Debugf("Waiting for job %s/%s to start for chaincode ID %s", job.Namespace, job.Name, chaincodeID)
+
+	_, err := waitForJobStart(ctx, logger, client, job.Name, job.Namespace, chaincodeStartTimeout)
+	if err != nil {
+		return fmt.Errorf(
+			"error waiting for chaincode job %s/%s to start for chaincode ID %s: %w",
+			job.Namespace,
+			job.Name,
+			chaincodeID,
+			err,
+		)
+	}
+
 	logger.Debugf("Waiting for job %s/%s to terminate for chaincode ID %s", job.Namespace, job.Name, chaincodeID)
 
-	_, err := waitForJobTermination(ctx, client, job.Name, job.Namespace)
+	jobStatus, err := waitForJobTermination(ctx, logger, client, job.Name, job.Namespace)
 	if err != nil {
 		return fmt.Errorf(
 			"error waiting for chaincode job %s/%s to terminate for chaincode ID %s: %w",
@@ -133,12 +194,15 @@ func WaitForChaincodeJob(
 		)
 	}
 
-	return fmt.Errorf(
-		"chaincode job %s/%s for chaincode ID %s terminated",
-		job.Namespace,
-		job.Name,
-		chaincodeID,
-	)
+	for _, c := range jobStatus.Conditions {
+		logger.Debugf("Status condition for job %s/%s: type=%v, status=%v, reason=%v, message=%v", job.Namespace, job.Name, c.Type, c.Status, c.Reason, c.Message)
+
+		if (c.Type == batchv1.JobFailed || c.Type == batchv1.JobFailureTarget) && c.Status == apiv1.ConditionTrue {
+			return fmt.Errorf("chaincode job %s/%s for chaincode ID %s terminated for reason %s: %s", job.Namespace, job.Name, chaincodeID, c.Reason, c.Message)
+		}
+	}
+
+	return nil
 }
 
 // GetKubeClientset returns a client object for a provided kubeconfig filepath
@@ -365,7 +429,7 @@ func CreateChaincodeJob(
 	ctx context.Context,
 	logger *log.CmdLogger,
 	jobsClient typedBatchv1.JobInterface,
-	objectName, namespace, serviceAccount, peerID string,
+	objectName, namespace, serviceAccount, nodeRole, peerID string,
 	chaincodeData *ChaincodeJSON,
 	imageData *ImageJSON,
 ) (*batchv1.Job, error) {
@@ -379,6 +443,41 @@ func CreateChaincodeJob(
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error getting chaincode job definition for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
+	}
+
+	if nodeRole != "" {
+		logger.Debugf(
+			"Adding node affinity and toleration to job definition for chaincode ID %s: %s",
+			chaincodeData.ChaincodeID,
+			nodeRole,
+		)
+
+		jobDefinition.Spec.Template.Spec.Affinity = &apiv1.Affinity{
+			NodeAffinity: &apiv1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &apiv1.NodeSelector{
+					NodeSelectorTerms: []apiv1.NodeSelectorTerm{
+						{
+							MatchExpressions: []apiv1.NodeSelectorRequirement{
+								{
+									Key:      "fabric-builder-k8s-role",
+									Operator: apiv1.NodeSelectorOpIn,
+									Values:   []string{nodeRole},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		jobDefinition.Spec.Template.Spec.Tolerations = []apiv1.Toleration{
+			{
+				Key:      "fabric-builder-k8s-role",
+				Operator: apiv1.TolerationOpEqual,
+				Value:    nodeRole,
+				Effect:   apiv1.TaintEffectNoSchedule,
+			},
+		}
 	}
 
 	jobName := jobDefinition.ObjectMeta.Name
