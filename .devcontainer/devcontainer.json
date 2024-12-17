@@ -7,18 +7,30 @@
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
-		"ghcr.io/devcontainers/features/python:1": {},
-		"ghcr.io/devcontainers-contrib/features/mkdocs:2": {
-			"plugins": "mkdocs-material mike"
-		},
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {
-			"enableNonRootDocker": "true",
-			"moby": "true"
+			"enableNonRootDocker": true,
+			"moby": true,
+			"azureDnsAutoDetection": true,
+			"installDockerBuildx": true,
+			"installDockerComposeSwitch": false,
+			"version": "latest",
+			"dockerDashComposeVersion": "none"
 		},
 		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
 			"version": "latest",
-			"helm": "latest",
-			"minikube": "latest"
+			"helm": "none",
+			"minikube": "none"
+		},
+		"ghcr.io/devcontainers-extra/features/kind:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/python:1": {
+			"installTools": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-extra/features/mkdocs:2": {
+			"version": "latest",
+			"plugins": "mkdocs-material mike pymdown-extensions mkdocstrings[crystal,python] mkdocs-monorepo-plugin mkdocs-pdf-export-plugin mkdocs-awesome-pages-plugin"
 		}
 	},
 
@@ -28,11 +40,6 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": ".devcontainer/postCreateCommand.sh",
 
-	// Use 'postStartCommand' to run commands after the container is created like starting minikube.
-	"postStartCommand": {
-		"minikube": "nohup bash -c 'minikube start &' > minikube.log 2>&1"
-	},
-
 	// Configure tool-specific properties.
 	// "customizations": {},
 
@@ -41,7 +48,7 @@
 
 	"containerEnv": {
 		"FABRIC_K8S_BUILDER_DEBUG": "true",
-		"CORE_PEER_CHAINCODEADDRESS_HOST_OVERRIDE": "host.minikube.internal",
+		"CORE_PEER_CHAINCODEADDRESS_HOST_OVERRIDE": "dockerhost",
 		"CORE_PEER_CHAINCODELISTENADDRESS_HOST_OVERRIDE": "0.0.0.0"
 	}
 }
