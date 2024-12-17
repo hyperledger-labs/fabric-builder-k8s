@@ -365,7 +365,7 @@ func CreateChaincodeJob(
 	ctx context.Context,
 	logger *log.CmdLogger,
 	jobsClient typedBatchv1.JobInterface,
-	objectName, namespace, serviceAccount, peerID string,
+	objectName, namespace, serviceAccount, nodeRole, peerID string,
 	chaincodeData *ChaincodeJSON,
 	imageData *ImageJSON,
 ) (*batchv1.Job, error) {
@@ -379,6 +379,41 @@ func CreateChaincodeJob(
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error getting chaincode job definition for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
+	}
+
+	if nodeRole != "" {
+		logger.Debugf(
+			"Adding node affinity and toleration to job definition for chaincode ID %s: %s",
+			chaincodeData.ChaincodeID,
+			nodeRole,
+		)
+
+		jobDefinition.Spec.Template.Spec.Affinity = &apiv1.Affinity{
+			NodeAffinity: &apiv1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &apiv1.NodeSelector{
+					NodeSelectorTerms: []apiv1.NodeSelectorTerm{
+						{
+							MatchExpressions: []apiv1.NodeSelectorRequirement{
+								{
+									Key:      "fabric-builder-k8s-role",
+									Operator: apiv1.NodeSelectorOpIn,
+									Values:   []string{nodeRole},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		jobDefinition.Spec.Template.Spec.Tolerations = []apiv1.Toleration{
+			{
+				Key:      "fabric-builder-k8s-role",
+				Operator: apiv1.TolerationOpEqual,
+				Value:    nodeRole,
+				Effect:   apiv1.TaintEffectNoSchedule,
+			},
+		}
 	}
 
 	jobName := jobDefinition.ObjectMeta.Name

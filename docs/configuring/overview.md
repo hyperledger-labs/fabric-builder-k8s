@@ -14,6 +14,7 @@ External builders are configured in the `core.yaml` file, for example:
         - CORE_PEER_ID
         - FABRIC_K8S_BUILDER_DEBUG
         - FABRIC_K8S_BUILDER_NAMESPACE
+        - FABRIC_K8S_BUILDER_NODE_ROLE
         - FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX
         - FABRIC_K8S_BUILDER_SERVICE_ACCOUNT
         - KUBERNETES_SERVICE_HOST
@@ -30,6 +31,7 @@ The k8s builder is configured using the following environment variables.
 | ------------------------------------- | -------------------------------- | ---------------------------------------------------- |
 | CORE_PEER_ID                          |                                  | The Fabric peer ID (required)                        |
 | FABRIC_K8S_BUILDER_NAMESPACE          | The peer namespace or `default`  | The Kubernetes namespace to run chaincode with       |
+| FABRIC_K8S_BUILDER_NODE_ROLE          |                                  | TBC                                                  |
 | FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX | `hlfcc`                          | Eye-catcher prefix for Kubernetes object names       |
 | FABRIC_K8S_BUILDER_SERVICE_ACCOUNT    | `default`                        | The Kubernetes service account to run chaincode with |
 | FABRIC_K8S_BUILDER_DEBUG              | `false`                          | Set to `true` to enable k8s builder debug messages   |

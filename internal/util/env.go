@@ -10,6 +10,7 @@ import (
 const (
 	builderVariablePrefix           = "FABRIC_K8S_BUILDER_"
 	ChaincodeNamespaceVariable      = builderVariablePrefix + "NAMESPACE"
+	ChaincodeNodeRoleVariable       = builderVariablePrefix + "NODE_ROLE"
 	ObjectNamePrefixVariable        = builderVariablePrefix + "OBJECT_NAME_PREFIX"
 	ChaincodeServiceAccountVariable = builderVariablePrefix + "SERVICE_ACCOUNT"
 	DebugVariable                   = builderVariablePrefix + "DEBUG"
