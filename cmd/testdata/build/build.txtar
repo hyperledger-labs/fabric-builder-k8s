@@ -1,0 +1,2 @@
+exec bork
+stdout 'hello world\n'
