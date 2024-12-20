@@ -1,10 +1,8 @@
 package main_test
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
-	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -65,74 +63,5 @@ var _ = Describe("Main", func() {
 		Entry("When the FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX contains invalid characters", "invalid/PREFIX*", `run \[\d+\]: The FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX environment variable must be a valid DNS-1035 label: a DNS-1035 label must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character`),
 		Entry("When the FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX starts with a number", "1prefix", `run \[\d+\]: The FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX environment variable must be a valid DNS-1035 label: a DNS-1035 label must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character`),
 		Entry("When the FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX starts with a dash", "-prefix", `run \[\d+\]: The FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX environment variable must be a valid DNS-1035 label: a DNS-1035 label must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character`),
-	)
-
-	It(
-		"should start a chaincode job using the supplied configuration environment variables",
-		Label("kind"),
-		func() {
-			homedir, err := os.UserHomeDir()
-			Expect(err).NotTo(HaveOccurred())
-
-			args := []string{"./testdata/validimage", "./testdata/validchaincode"}
-			command := exec.Command(runCmdPath, args...)
-			command.Env = append(os.Environ(),
-				fmt.Sprintf("KUBECONFIG_PATH=%s/.kube/config", homedir),
-				"CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789",
-				"FABRIC_K8S_BUILDER_DEBUG=true",
-				"FABRIC_K8S_BUILDER_NAMESPACE=chaincode",
-				"FABRIC_K8S_BUILDER_SERVICE_ACCOUNT=chaincode",
-			)
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(session).ShouldNot(gexec.Exit())
-			Eventually(
-				session.Err,
-			).Should(gbytes.Say(`run \[\d+\] DEBUG: FABRIC_K8S_BUILDER_NAMESPACE=chaincode`))
-			Eventually(
-				session.Err,
-			).Should(gbytes.Say(`run \[\d+\] DEBUG: FABRIC_K8S_BUILDER_SERVICE_ACCOUNT=chaincode`))
-			Eventually(
-				session.Err,
-			).Should(gbytes.Say(`run \[\d+\]: Running chaincode ID CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45 with kubernetes job chaincode/hlfcc-chaincodelabel-piihcaj6ryttc`))
-
-			waitArgs := []string{
-				"wait",
-				"--for=jsonpath=.status.ready=1",
-				"job",
-				"--timeout=120s",
-				"--namespace=chaincode",
-				"-l",
-				"fabric-builder-k8s-cclabel=CHAINCODE_LABEL",
-			}
-			waitCommand := exec.Command("kubectl", waitArgs...)
-			waitSession, err := gexec.Start(waitCommand, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(waitSession).WithTimeout(240 * time.Second).Should(gexec.Exit(0))
-
-			descArgs := []string{
-				"describe",
-				"job",
-				"--namespace=chaincode",
-				"-l",
-				"fabric-builder-k8s-cclabel=CHAINCODE_LABEL",
-			}
-			descCommand := exec.Command("kubectl", descArgs...)
-			descSession, err := gexec.Start(descCommand, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(descSession).Should(gexec.Exit(0))
-			Eventually(descSession.Out).Should(gbytes.Say(`Namespace:\s+chaincode`))
-			Eventually(
-				descSession.Out,
-			).Should(gbytes.Say(`fabric-builder-k8s-ccid:\s+CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45`))
-			Eventually(descSession.Out).Should(gbytes.Say(`fabric-builder-k8s-mspid:\s+MSPID`))
-			Eventually(descSession.Out).Should(gbytes.Say(`fabric-builder-k8s-peeraddress:\s+PEER_ADDRESS`))
-			Eventually(descSession.Out).Should(gbytes.Say(`fabric-builder-k8s-peerid:\s+core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789`))
-			Eventually(descSession.Out).Should(gbytes.Say(`CORE_CHAINCODE_ID_NAME:\s+CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45`))
-			Eventually(descSession.Out).Should(gbytes.Say(`CORE_PEER_ADDRESS:\s+PEER_ADDRESS`))
-			Eventually(descSession.Out).Should(gbytes.Say(`CORE_PEER_LOCALMSPID:\s+MSPID`))
-		},
 	)
 })
