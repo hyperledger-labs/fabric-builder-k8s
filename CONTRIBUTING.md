@@ -43,7 +43,36 @@ golangci-lint run ./...
 ## Development environment
 
 There is a [Visual Studio Code Dev Container](https://code.visualstudio.com/docs/devcontainers/containers) which should help develop and test the k8s builder in a consistent development environment.
-It includes a preconfigured nano Fabric test network and minikube which can be used to run end to end tests.
+It includes a preconfigured nano Fabric test network and [kind](https://kind.sigs.k8s.io/), which can be used to run end to end tests.
+
+Create a Kubernetes cluster.
+
+```shell
+kind create cluster --name fabric-builder-k8s-dev
+```
+
+Allow chaincode pods to reach peers.
+(Make sure the gateway IP is correct! See [Is it possible accessing host machine ports from Kind pods?](https://github.com/kubernetes-sigs/kind/issues/1200) for background.)
+
+```shell
+kubectl apply -f - <<EOF
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: dockerhost
+subsets:
+- addresses:
+  - ip: 172.18.0.1 # this is the gateway IP in the "bridge" docker network
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dockerhost
+spec:
+  clusterIP: None
+EOF
+```
 
 Build your latest k8s builder changes.
 
