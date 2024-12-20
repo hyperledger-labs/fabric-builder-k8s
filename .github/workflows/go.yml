@@ -44,7 +44,6 @@ jobs:
       run: go test -v ./...
       env:
         FABRIC_K8S_BUILDER_DEBUG: 'true'
-        INCLUDE_KIND_TESTS: ${{ matrix.os == 'ubuntu-latest' && 'true' || 'false' }}
 
     - name: Package
       run: |
