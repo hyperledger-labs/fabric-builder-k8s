@@ -1,0 +1,26 @@
+env CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789
+env FABRIC_K8S_BUILDER_NAMESPACE=$TESTENV_NAMESPACE
+env FABRIC_K8S_BUILDER_NODE_ROLE=unavailable
+env FABRIC_K8S_BUILDER_START_TIMEOUT=30s
+env FABRIC_K8S_BUILDER_DEBUG=true
+
+# the builder should time out if the chaincode cannot be scheduled
+! exec run build_output_dir run_metadata_dir
+
+stderr '^run \[\d+\]: Error running chaincode: error waiting for chaincode job testns--[a-z0-9]{24}\/hlfcc-nodeunavailablechaincodelabel-g4dgk4a4w4hos-[a-z0-9]{5} to start for chaincode ID NODE_UNAVAILABLE_CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45: timed out waiting for the condition$'
+
+-- build_output_dir/image.json --
+{
+  "name": "nginx",
+  "digest": "sha256:da3cc3053314be9ca3871307366f6e30ce2b11e1ea6a72e5957244d99b2515bf"
+}
+
+-- run_metadata_dir/chaincode.json --
+{
+  "chaincode_id": "NODE_UNAVAILABLE_CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45",
+  "peer_address": "PEER_ADDRESS",
+  "client_cert": "CLIENT_CERT",
+  "client_key": "CLIENT_KEY",
+  "root_cert": "ROOT_CERT",
+  "mspid": "MSPID"
+}

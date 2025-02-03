@@ -10,8 +10,10 @@ import (
 const (
 	builderVariablePrefix           = "FABRIC_K8S_BUILDER_"
 	ChaincodeNamespaceVariable      = builderVariablePrefix + "NAMESPACE"
+	ChaincodeNodeRoleVariable       = builderVariablePrefix + "NODE_ROLE"
 	ObjectNamePrefixVariable        = builderVariablePrefix + "OBJECT_NAME_PREFIX"
 	ChaincodeServiceAccountVariable = builderVariablePrefix + "SERVICE_ACCOUNT"
+	ChaincodeStartTimeoutVariable   = builderVariablePrefix + "START_TIMEOUT"
 	DebugVariable                   = builderVariablePrefix + "DEBUG"
 	KubeconfigPathVariable          = "KUBECONFIG_PATH"
 	PeerIDVariable                  = "CORE_PEER_ID"
