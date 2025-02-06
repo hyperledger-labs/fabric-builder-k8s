@@ -2,7 +2,7 @@ ARG UBUNTU_VER=20.04
 ARG HLF_VERSION=2.5
 
 FROM ubuntu:${UBUNTU_VER} AS build
-ARG GO_VER=1.22.0
+ARG GO_VER=1.23.0
 ENV GOPATH=/go
 
 RUN apt update && apt install -y \
