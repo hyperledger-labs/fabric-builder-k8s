@@ -17,6 +17,10 @@ on:
 jobs:
   docker_build:
     name: Docker build
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
     uses: ./.github/workflows/docker-build.yml
     with:
       image-name: ghcr.io/hyperledger-labs/fabric-builder-k8s/sample-go-contract

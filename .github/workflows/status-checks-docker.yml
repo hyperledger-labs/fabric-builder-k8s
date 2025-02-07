@@ -3,6 +3,8 @@ name: Skip docker status checks
 on:
   workflow_call:
 
+permissions: read-all
+
 jobs:
   build:
     runs-on: ubuntu-latest

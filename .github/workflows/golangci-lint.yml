@@ -15,8 +15,7 @@ on:
       - 'docs/**'
       - 'samples/**'
 
-permissions:
-  contents: read
+permissions: read-all
 
 jobs:
   golangci:
