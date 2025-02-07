@@ -16,13 +16,13 @@ on:
         required: false
         type: string
 
-permissions:
-  contents: write
-  packages: write
-  id-token: write
-
 jobs:
   build:
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+
     runs-on: ubuntu-latest
     outputs:
       image_digest: ${{ steps.push.outputs.digest }}
@@ -55,7 +55,7 @@ jobs:
       id: push
       uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6
       with:
-        context: .
+        context: ${{ inputs.path }}
         platforms: linux/amd64,linux/arm64
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
