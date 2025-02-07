@@ -29,7 +29,7 @@ Set the following environment variables to enable the k8s builder and define whi
 
 ```shell
 export TEST_NETWORK_CHAINCODE_BUILDER="k8s"
-export TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION="0.14.0"
+export TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION="0.15.0"
 ```
 
 ## Download chaincode samples
