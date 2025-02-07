@@ -1,11 +1,14 @@
-ARG UBUNTU_VER=20.04
+ARG UBUNTU_VER=24.04
 ARG HLF_VERSION=2.5
 
 FROM ubuntu:${UBUNTU_VER} AS build
 ARG GO_VER=1.23.0
 ENV GOPATH=/go
 
-RUN apt update && apt install -y \
+ENV DEBIAN_FRONTEND="noninteractive"
+RUN apt-get update && apt-get install -y -q --no-install-recommends \
+    ca-certificates \
+    build-essential \
     git \
     gcc \
     curl \
@@ -17,11 +20,13 @@ ENV PATH="/usr/local/go/bin:$PATH"
 ADD . $GOPATH/src/github.com/hyperledger-labs/fabric-builder-k8s
 WORKDIR $GOPATH/src/github.com/hyperledger-labs/fabric-builder-k8s
 
-RUN go install ./cmd/...
+RUN go install -a -v ./cmd/...
 
 FROM hyperledger/fabric-peer:${HLF_VERSION} AS core
 
-RUN apt update && apt install -y \
+ENV DEBIAN_FRONTEND="noninteractive"
+RUN apt-get update && apt-get install -y -q --no-install-recommends \
+    ca-certificates \
     wget
 
 RUN wget https://github.com/mikefarah/yq/releases/download/v4.23.1/yq_linux_$(dpkg --print-architecture) -O /usr/bin/yq && chmod +x /usr/bin/yq

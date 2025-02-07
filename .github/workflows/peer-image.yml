@@ -18,6 +18,8 @@ on:
       - 'docs/**'
       - 'samples/**'
 
+permissions: read-all
+
 jobs:
   docker_build:
     name: Docker build
