@@ -113,7 +113,7 @@ func getChaincodeStartTimeout(logger *log.CmdLogger) (chaincodeStartTimeoutDurat
 	return chaincodeStartTimeoutDuration, true
 }
 
-func Run() int {
+func Run() {
 	const (
 		expectedArgsLength      = 3
 		buildOutputDirectoryArg = 1
@@ -127,7 +127,7 @@ func Run() int {
 	if len(os.Args) != expectedArgsLength {
 		logger.Println("Expected BUILD_OUTPUT_DIR and RUN_METADATA_DIR arguments")
 
-		return 1
+		os.Exit(1)
 	}
 
 	buildOutputDirectory := os.Args[buildOutputDirectoryArg]
@@ -141,7 +141,7 @@ func Run() int {
 
 	peerID, ok := getPeerID(logger)
 	if !ok {
-		return 1
+		os.Exit(1)
 	}
 
 	kubeconfigPath := getKubeconfigPath(logger)
@@ -149,19 +149,19 @@ func Run() int {
 
 	kubeNodeRole, ok := getKubeNodeRole(logger)
 	if !ok {
-		return 1
+		os.Exit(1)
 	}
 
 	kubeServiceAccount := getKubeServiceAccount(logger)
 
 	kubeNamePrefix, ok := getKubeNamePrefix(logger)
 	if !ok {
-		return 1
+		os.Exit(1)
 	}
 
 	chaincodeStartTimeout, ok := getChaincodeStartTimeout(logger)
 	if !ok {
-		return 1
+		os.Exit(1)
 	}
 
 	run := &builder.Run{
@@ -179,8 +179,8 @@ func Run() int {
 	if err := run.Run(ctx); err != nil {
 		logger.Printf("Error running chaincode: %+v", err)
 
-		return 1
+		os.Exit(1)
 	}
 
-	return 0
+	os.Exit(0)
 }

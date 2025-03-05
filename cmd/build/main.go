@@ -2,12 +2,8 @@
 
 package main
 
-import (
-	"os"
-
-	"github.com/hyperledger-labs/fabric-builder-k8s/cmd"
-)
+import "github.com/hyperledger-labs/fabric-builder-k8s/internal/cmd"
 
 func main() {
-	os.Exit(cmd.Build())
+	cmd.Build()
 }
