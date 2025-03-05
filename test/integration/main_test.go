@@ -8,10 +8,9 @@ package integration_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
-	"github.com/hyperledger-labs/fabric-builder-k8s/cmd"
+	"github.com/hyperledger-labs/fabric-builder-k8s/internal/cmd"
 	"github.com/hyperledger-labs/fabric-builder-k8s/test"
 	"github.com/rogpeppe/go-internal/testscript"
 	batchv1 "k8s.io/api/batch/v1"
@@ -71,7 +70,7 @@ func TestMain(m *testing.M) {
 	})
 
 	wm := test.NewWrappedM(m, testenv)
-	os.Exit(testscript.RunMain(wm, map[string]func() int{
+	testscript.Main(wm, map[string]func(){
 		"run": cmd.Run,
-	}))
+	})
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
 )
 
-func Release() int {
+func Release() {
 	const (
 		expectedArgsLength        = 3
 		buildOutputDirectoryArg   = 1
@@ -26,7 +26,7 @@ func Release() int {
 	if len(os.Args) != expectedArgsLength {
 		logger.Println("Expected BUILD_OUTPUT_DIR and RELEASE_OUTPUT_DIR arguments")
 
-		return 1
+		os.Exit(1)
 	}
 
 	buildOutputDirectory := os.Args[buildOutputDirectoryArg]
@@ -43,8 +43,8 @@ func Release() int {
 	if err := release.Run(ctx); err != nil {
 		logger.Printf("Error releasing chaincode: %+v", err)
 
-		return 1
+		os.Exit(1)
 	}
 
-	return 0
+	os.Exit(0)
 }

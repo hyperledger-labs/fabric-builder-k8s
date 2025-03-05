@@ -4,7 +4,6 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"os"
 	"strconv"
 
@@ -13,11 +12,12 @@ import (
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
 )
 
-func Detect() int {
+func Build() {
 	const (
-		expectedArgsLength            = 3
+		expectedArgsLength            = 4
 		chaincodeSourceDirectoryArg   = 1
 		chaincodeMetadataDirectoryArg = 2
+		buildOutputDirectoryArg       = 3
 	)
 
 	debug, _ := strconv.ParseBool(util.GetOptionalEnv(util.DebugVariable, "false"))
@@ -25,30 +25,32 @@ func Detect() int {
 	logger := log.New(ctx)
 
 	if len(os.Args) != expectedArgsLength {
-		logger.Println("Expected CHAINCODE_SOURCE_DIR and CHAINCODE_METADATA_DIR arguments")
+		logger.Println(
+			"Expected CHAINCODE_SOURCE_DIR, CHAINCODE_METADATA_DIR and BUILD_OUTPUT_DIR arguments",
+		)
 
-		return 1
+		os.Exit(1)
 	}
 
 	chaincodeSourceDirectory := os.Args[chaincodeSourceDirectoryArg]
 	chaincodeMetadataDirectory := os.Args[chaincodeMetadataDirectoryArg]
+	buildOutputDirectory := os.Args[buildOutputDirectoryArg]
 
 	logger.Debugf("Chaincode source directory: %s", chaincodeSourceDirectory)
 	logger.Debugf("Chaincode metadata directory: %s", chaincodeMetadataDirectory)
+	logger.Debugf("Build output directory: %s", buildOutputDirectory)
 
-	detect := &builder.Detect{
+	build := &builder.Build{
 		ChaincodeSourceDirectory:   chaincodeSourceDirectory,
 		ChaincodeMetadataDirectory: chaincodeMetadataDirectory,
+		BuildOutputDirectory:       buildOutputDirectory,
 	}
 
-	if err := detect.Run(ctx); err != nil {
-		if !errors.Is(err, builder.ErrUnsupportedChaincodeType) {
-			// don't spam the peer log if it's just chaincode we don't recognise
-			logger.Printf("Error detecting chaincode: %+v", err)
-		}
+	if err := build.Run(ctx); err != nil {
+		logger.Printf("Error building chaincode: %+v", err)
 
-		return 1
+		os.Exit(1)
 	}
 
-	return 0
+	os.Exit(0)
 }
