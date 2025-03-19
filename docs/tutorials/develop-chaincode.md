@@ -1,4 +1,4 @@
-# Developing and debuging chaincode
+# Developing and debugging chaincode
 
 Publishing a chaincode Docker image and using the image digest to deploy the chaincode works well with the [Fabric chaincode lifecycle](https://hyperledger-fabric.readthedocs.io/en/latest/chaincode_lifecycle.html), however it is not as convenient while developing and debugging chaincode.
 
