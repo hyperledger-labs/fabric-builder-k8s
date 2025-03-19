@@ -16,7 +16,7 @@ If you want to begin contributing code, looking through our open issues is a goo
 
 ## Enhancements
 
-Open an issue to make sure your contibution is likely to be accepted before investing a lot of effort in larger changes.
+Open an issue to make sure your contribution is likely to be accepted before investing a lot of effort in larger changes.
 
 ## Pull Requests
 
