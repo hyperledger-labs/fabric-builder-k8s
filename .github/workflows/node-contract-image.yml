@@ -25,6 +25,7 @@ jobs:
       id-token: write
     uses: ./.github/workflows/docker-build.yml
     with:
+      platforms: linux/amd64,linux/arm64
       image-name: ghcr.io/hyperledger-labs/fabric-builder-k8s/sample-node-contract
       path: samples/node-contract
       chaincode-label: node-contract
