@@ -2,8 +2,11 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/go
 {
 	"name": "Fabric k8s builder",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/go:1-1.23-bookworm",
+
+	// Use a Dockerfile. More info: https://containers.dev/guide/dockerfile
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
