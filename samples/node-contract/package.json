@@ -24,7 +24,7 @@
   "author": "Hyperledger",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "^22.13.14",
+    "@types/node": "^22.15.3",
     "gts": "^6.0.2",
     "typescript": "^5.8.2"
   },
