@@ -480,7 +480,7 @@ func CreateChaincodeJob(
 		}
 	}
 
-	jobName := jobDefinition.ObjectMeta.Name
+	jobName := jobDefinition.Name
 
 	logger.Debugf(
 		"Creating chaincode job for chaincode ID %s: %s/%s",

@@ -130,19 +130,19 @@ func jobInfoCmd(script *testscript.TestScript, _ bool, args []string) {
 	job := waitForChaincodeJob(script, cfg, cclabel, cchash)
 
 	var err error
-	_, err = script.Stdout().Write([]byte(fmt.Sprintf("Job name: %s\n", job.GetName())))
+	_, err = script.Stdout().Write(fmt.Appendf(nil, "Job name: %s\n", job.GetName()))
 	script.Check(err)
 
-	_, err = script.Stdout().Write([]byte(fmt.Sprintf("Job namespace: %s\n", job.GetNamespace())))
+	_, err = script.Stdout().Write(fmt.Appendf(nil, "Job namespace: %s\n", job.GetNamespace()))
 	script.Check(err)
 
 	for k, v := range job.GetLabels() {
-		_, err = script.Stdout().Write([]byte(fmt.Sprintf("Job label: %s=%s\n", k, v)))
+		_, err = script.Stdout().Write(fmt.Appendf(nil, "Job label: %s=%s\n", k, v))
 		script.Check(err)
 	}
 
 	for k, v := range job.GetAnnotations() {
-		_, err = script.Stdout().Write([]byte(fmt.Sprintf("Job annotation: %s=%s\n", k, v)))
+		_, err = script.Stdout().Write(fmt.Appendf(nil, "Job annotation: %s=%s\n", k, v))
 		script.Check(err)
 	}
 }
@@ -163,36 +163,36 @@ func podInfoCmd(script *testscript.TestScript, _ bool, args []string) {
 	podname := pod.GetName()
 
 	var err error
-	_, err = script.Stdout().Write([]byte(fmt.Sprintf("Pod name: %s\n", podname)))
+	_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod name: %s\n", podname))
 	script.Check(err)
 
-	_, err = script.Stdout().Write([]byte(fmt.Sprintf("Pod namespace: %s\n", pod.GetNamespace())))
+	_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod namespace: %s\n", pod.GetNamespace()))
 	script.Check(err)
 
-	_, err = script.Stdout().Write([]byte(fmt.Sprintf("Pod service account: %s\n", pod.Spec.ServiceAccountName)))
+	_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod service account: %s\n", pod.Spec.ServiceAccountName))
 	script.Check(err)
 
 	for k, v := range pod.GetLabels() {
-		_, err = script.Stdout().Write([]byte(fmt.Sprintf("Pod label: %s=%s\n", k, v)))
+		_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod label: %s=%s\n", k, v))
 		script.Check(err)
 	}
 
 	for k, v := range pod.GetAnnotations() {
-		_, err = script.Stdout().Write([]byte(fmt.Sprintf("Pod annotation: %s=%s\n", k, v)))
+		_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod annotation: %s=%s\n", k, v))
 		script.Check(err)
 	}
 
 	if pod.Spec.Affinity != nil && pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
 		for _, t := range pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
 			for _, e := range t.MatchExpressions {
-				_, err = script.Stdout().Write([]byte(fmt.Sprintf("Pod affinity: %v=%v op=%v\n", e.Key, e.Values, e.Operator)))
+				_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod affinity: %v=%v op=%v\n", e.Key, e.Values, e.Operator))
 				script.Check(err)
 			}
 		}
 	}
 
 	for _, t := range pod.Spec.Tolerations {
-		_, err = script.Stdout().Write([]byte(fmt.Sprintf("Pod toleration: %v=%v:%v op=%v for %vs\n", t.Key, t.Value, t.Effect, t.Operator, t.TolerationSeconds)))
+		_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod toleration: %v=%v:%v op=%v for %vs\n", t.Key, t.Value, t.Effect, t.Operator, t.TolerationSeconds))
 		script.Check(err)
 	}
 }
