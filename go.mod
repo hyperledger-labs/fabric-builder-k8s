@@ -8,7 +8,7 @@ require (
 	github.com/otiai10/copy v1.14.1
 	github.com/rogpeppe/go-internal v1.14.1
 	k8s.io/api v0.33.1
-	k8s.io/apimachinery v0.33.1
+	k8s.io/apimachinery v0.33.2
 	k8s.io/client-go v0.33.1
 	sigs.k8s.io/e2e-framework v0.6.0
 )
