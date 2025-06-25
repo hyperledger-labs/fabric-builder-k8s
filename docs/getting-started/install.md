@@ -16,7 +16,7 @@ Prebuilt binaries are available to download from the [releases page](https://git
 
 To install from source in `/opt/hyperledger/k8s_builder`, use the `go install` command.
 
-```
+```shell
 mkdir -p /opt/hyperledger/k8s_builder/bin
 cd /opt/hyperledger/k8s_builder/bin
 GOBIN="${PWD}" go install github.com/hyperledger-labs/fabric-builder-k8s/cmd/...@v0.13.0

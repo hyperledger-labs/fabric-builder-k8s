@@ -101,6 +101,7 @@ nav:
     - Chaincode builder: concepts/chaincode-builder.md
     - Chaincode image: concepts/chaincode-image.md
     - Chaincode package: concepts/chaincode-package.md
+    - Chaincode job: concepts/chaincode-job.md
   - Configuring:
     - Configuration overview: configuring/overview.md
     - Kubernetes permissions: configuring/kubernetes-permissions.md

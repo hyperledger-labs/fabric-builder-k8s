@@ -19,8 +19,7 @@ Download the sample Kubernetes test network (fabric-samples isn't tagged so we'l
 export FABRIC_SAMPLES_COMMIT=1058f9ffe16add583d1a11342deb5a9df3e5b72c
 curl -sSL "https://github.com/hyperledger/fabric-samples/archive/${FABRIC_SAMPLES_COMMIT}.tar.gz" | \
   tar -xzf - --strip-components=1 \
-    fabric-samples-${FABRIC_SAMPLES_COMMIT}/test-network-k8s \
-    fabric-samples-${FABRIC_SAMPLES_COMMIT}/asset-transfer-basic/chaincode-java
+    fabric-samples-${FABRIC_SAMPLES_COMMIT}/test-network-k8s
 ```
 
 ## Configure the Kubernetes test network
@@ -59,10 +58,10 @@ You can query the chaincode metadata to confirm that the sample was deployed suc
 ./network chaincode query sample-contract '{"Args":["org.hyperledger.fabric:GetMetadata"]}'
 ```
 
-Use the `kubectl` command to inspect chaincode pods.
+Use the `kubectl` command to inspect chaincode jobs.
 
 ```shell
-kubectl -n test-network describe pods -l app.kubernetes.io/created-by=fabric-builder-k8s
+kubectl -n test-network describe jobs -l app.kubernetes.io/created-by=fabric-builder-k8s
 ```
 
 ## Running transactions

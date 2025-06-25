@@ -126,7 +126,7 @@ kubectl hlf chaincode install --path=./go-contract-v0.7.2.tgz \
 
 Get the chaincode's PACKAGE_ID
 
-```
+```shell
 export PACKAGE_ID=$(kubectl hlf chaincode calculatepackageid --path=./go-contract-v0.7.2.tgz --language=golang --label=$CHAINCODE_LABEL) && echo $PACKAGE_ID
 ```
 
