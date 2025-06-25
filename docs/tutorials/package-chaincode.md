@@ -15,7 +15,7 @@ IMAGEJSON-EOF
 The k8s builder uses digests because these are immutable, unlike tags.
 The docker inspect command can be used to find the digest if required.
 
-```
+```shell
 docker pull ghcr.io/hyperledger-labs/go-contract:v0.7.2
 docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/hyperledger-labs/go-contract:v0.7.2 | cut -d'@' -f2
 ```
