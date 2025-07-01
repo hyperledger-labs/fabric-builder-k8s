@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.5'
+    implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.6'
 
     // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter:5.13.1'
