@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
-ARG NODE_VER=16
-ARG ALPINE_VER=3.14
+ARG NODE_VER=20
+ARG ALPINE_VER=3.22
 
 FROM node:${NODE_VER}-alpine${ALPINE_VER} AS build
 
