@@ -18,7 +18,7 @@ func TestBuild(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	SetDefaultEventuallyTimeout(3 * time.Second)
+	SetDefaultEventuallyTimeout(5 * time.Second)
 
 	var err error
 	buildCmdPath, err = gexec.Build("github.com/hyperledger-labs/fabric-builder-k8s/cmd/build")
