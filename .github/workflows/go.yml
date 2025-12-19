@@ -23,7 +23,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-13]
+        os: [ubuntu-latest, macOS-latest]
         goarch: [amd64, arm64]
 
     permissions:
