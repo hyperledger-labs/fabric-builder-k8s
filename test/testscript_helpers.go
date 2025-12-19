@@ -130,6 +130,7 @@ func jobInfoCmd(script *testscript.TestScript, _ bool, args []string) {
 	job := waitForChaincodeJob(script, cfg, cclabel, cchash)
 
 	var err error
+
 	_, err = script.Stdout().Write(fmt.Appendf(nil, "Job name: %s\n", job.GetName()))
 	script.Check(err)
 
@@ -163,6 +164,7 @@ func podInfoCmd(script *testscript.TestScript, _ bool, args []string) {
 	podname := pod.GetName()
 
 	var err error
+
 	_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod name: %s\n", podname))
 	script.Check(err)
 

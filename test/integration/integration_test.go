@@ -48,10 +48,12 @@ func TestRunChaincodeWithServiceAccount(t *testing.T) {
 			serviceAccount := &v1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{Name: "chaincode", Namespace: cfg.Namespace()},
 			}
+
 			client, err := cfg.NewClient()
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			if err := client.Resources().Create(ctx, serviceAccount); err != nil {
 				t.Fatal(err)
 			}
@@ -72,10 +74,12 @@ func TestRunChaincodeWithServiceAccount(t *testing.T) {
 			serviceAccount := &v1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{Name: "chaincode", Namespace: cfg.Namespace()},
 			}
+
 			client, err := cfg.NewClient()
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			if err := client.Resources().Delete(ctx, serviceAccount); err != nil {
 				t.Fatal(err)
 			}

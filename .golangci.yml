@@ -67,7 +67,7 @@ linters:
     - varnamelen
     - wastedassign
     - whitespace
-    - wsl
+    - wsl_v5
   settings:
     errorlint:
       errorf: true
@@ -76,6 +76,10 @@ linters:
     nolintlint:
       require-explanation: true
       require-specific: true
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
   exclusions:
     generated: lax
     presets:
@@ -84,9 +88,13 @@ linters:
       - legacy
       - std-error-handling
     rules:
-      - linters:
+      - path: 'util/'
+        linters:
           - revive
-        path: _test\.go
+        text: var-naming
+      - path: _test\.go
+        linters:
+          - revive
         text: dot-imports
     paths:
       - third_party$

@@ -60,6 +60,7 @@ func CopyIndexFiles(logger *log.CmdLogger, src, dest string) error {
 	opt := copy.Options{
 		Skip: func(info os.FileInfo, src, _ string) (bool, error) {
 			logger.Debugf("Checking source copy path: %s", src)
+
 			if info.IsDir() {
 				skip, err := skipFolder(logger, indexSrcDir, src)
 				if err != nil {
