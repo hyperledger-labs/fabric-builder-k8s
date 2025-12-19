@@ -34,6 +34,13 @@
 		"ghcr.io/devcontainers-extra/features/mkdocs:2": {
 			"version": "latest",
 			"plugins": "mkdocs-material mike pymdown-extensions mkdocstrings[crystal,python] mkdocs-monorepo-plugin mkdocs-pdf-export-plugin mkdocs-awesome-pages-plugin"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
+			"nodeGypDependencies": true,
+			"installYarnUsingApt": true,
+			"version": "20",
+			"pnpmVersion": "none",
+			"nvmVersion": "latest"
 		}
 	},
 

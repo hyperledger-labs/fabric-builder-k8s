@@ -7,8 +7,8 @@
     "dist"
   ],
   "engines": {
-    "node": ">=16",
-    "npm": ">=8"
+    "node": ">=20",
+    "npm": ">=10"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -25,11 +25,11 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@types/node": "^25.0.2",
-    "gts": "^6.0.2",
+    "gts": "^7.0.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "fabric-contract-api": "^2.5.6",
+    "fabric-contract-api": "^2.5.8",
     "fabric-shim": "^2.5.8"
   }
 }
