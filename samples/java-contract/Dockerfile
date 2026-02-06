@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-ARG JAVA_VER=11
+ARG JAVA_VER=25
 
 FROM eclipse-temurin:${JAVA_VER}-jdk-alpine AS build
 

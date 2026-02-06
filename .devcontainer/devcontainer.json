@@ -41,6 +41,13 @@
 			"version": "20",
 			"pnpmVersion": "none",
 			"nvmVersion": "latest"
+		},
+		"ghcr.io/devcontainers/features/java:1": {
+			"version": "25",
+			"jdkDistro": "tem",
+			"installAnt": false,
+			"installGradle": true,
+			"installMaven": false
 		}
 	},
 
