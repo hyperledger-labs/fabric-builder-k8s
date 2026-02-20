@@ -22,7 +22,7 @@ dependencies {
     implementation 'org.hyperledger.fabric-chaincode-java:fabric-chaincode-shim:2.5.8'
 
     // Use JUnit Jupiter for testing.
-    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
 
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:33.5.0-jre'
