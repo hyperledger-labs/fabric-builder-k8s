@@ -3,6 +3,9 @@ name: Skip status checks
 on:
   pull_request:
     paths:
+      - 'Dockerfile'
+      - 'go.mod'
+      - 'go.sum'
       - '*.md'
       - 'docs/**'
       - 'samples/**'
