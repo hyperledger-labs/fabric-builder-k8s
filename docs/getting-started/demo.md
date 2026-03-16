@@ -16,7 +16,7 @@ Now follow the steps below to deploy your first smart contract using the k8s bui
 Download the sample Kubernetes test network (fabric-samples isn't tagged so we'll use a known good commit).
 
 ```shell
-export FABRIC_SAMPLES_COMMIT=1058f9ffe16add583d1a11342deb5a9df3e5b72c
+export FABRIC_SAMPLES_COMMIT=80a29f44af3af6006003e77d3f90321ce4c29009
 curl -sSL "https://github.com/hyperledger/fabric-samples/archive/${FABRIC_SAMPLES_COMMIT}.tar.gz" | \
   tar -xzf - --strip-components=1 \
     fabric-samples-${FABRIC_SAMPLES_COMMIT}/test-network-k8s
@@ -28,7 +28,7 @@ Set the following environment variables to enable the k8s builder and define whi
 
 ```shell
 export TEST_NETWORK_CHAINCODE_BUILDER="k8s"
-export TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION="0.15.1"
+export TEST_NETWORK_K8S_CHAINCODE_BUILDER_VERSION="0.15.2"
 ```
 
 ## Download chaincode samples
