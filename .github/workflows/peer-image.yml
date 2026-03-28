@@ -13,10 +13,10 @@ on:
   pull_request:
     branches:
       - 'main'
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
-      - 'samples/**'
+    paths:
+      - 'Dockerfile'
+      - 'go.mod'
+      - 'go.sum'
 
 permissions: read-all
 
