@@ -130,4 +130,67 @@ var _ = Describe("K8s", func() {
 			Expect(name).To(Equal("hlf-k8sbuilder-ftw-fabfabfabfabcarfabfabfabfabcar-b46p74k4ygwh6"))
 		})
 	})
+
+	Describe("ParseAnnotations", func() {
+		It("should return empty map for empty string", func() {
+			result := util.ParseAnnotations("")
+			Expect(result).To(BeEmpty())
+		})
+
+		It("should parse single annotation", func() {
+			result := util.ParseAnnotations("sidecar.istio.io/inject=true")
+			Expect(result).To(HaveLen(1))
+			Expect(result["sidecar.istio.io/inject"]).To(Equal("true"))
+		})
+
+		It("should parse multiple annotations", func() {
+			result := util.ParseAnnotations("sidecar.istio.io/inject=true,app=myapp,version=1.0")
+			Expect(result).To(HaveLen(3))
+			Expect(result["sidecar.istio.io/inject"]).To(Equal("true"))
+			Expect(result["app"]).To(Equal("myapp"))
+			Expect(result["version"]).To(Equal("1.0"))
+		})
+
+		It("should handle annotations with spaces", func() {
+			result := util.ParseAnnotations(" sidecar.istio.io/inject = true , app = myapp ")
+			Expect(result).To(HaveLen(2))
+			Expect(result["sidecar.istio.io/inject"]).To(Equal("true"))
+			Expect(result["app"]).To(Equal("myapp"))
+		})
+
+		It("should skip invalid entries without equals sign", func() {
+			result := util.ParseAnnotations("sidecar.istio.io/inject=true,invalidentry,app=myapp")
+			Expect(result).To(HaveLen(2))
+			Expect(result["sidecar.istio.io/inject"]).To(Equal("true"))
+			Expect(result["app"]).To(Equal("myapp"))
+		})
+
+		It("should skip empty entries", func() {
+			result := util.ParseAnnotations("sidecar.istio.io/inject=true,,app=myapp")
+			Expect(result).To(HaveLen(2))
+			Expect(result["sidecar.istio.io/inject"]).To(Equal("true"))
+			Expect(result["app"]).To(Equal("myapp"))
+		})
+
+		It("should handle annotations with empty values", func() {
+			result := util.ParseAnnotations("sidecar.istio.io/inject=,app=myapp")
+			Expect(result).To(HaveLen(2))
+			Expect(result["sidecar.istio.io/inject"]).To(Equal(""))
+			Expect(result["app"]).To(Equal("myapp"))
+		})
+
+		It("should handle annotations with equals signs in values", func() {
+			result := util.ParseAnnotations("config=key=value,app=myapp")
+			Expect(result).To(HaveLen(2))
+			Expect(result["config"]).To(Equal("key=value"))
+			Expect(result["app"]).To(Equal("myapp"))
+		})
+
+		It("should skip entries with empty keys", func() {
+			result := util.ParseAnnotations("=value,app=myapp")
+			Expect(result).To(HaveLen(1))
+			Expect(result["app"]).To(Equal("myapp"))
+		})
+	})
+
 })

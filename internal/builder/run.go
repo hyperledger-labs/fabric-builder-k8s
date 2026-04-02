@@ -21,6 +21,8 @@ type Run struct {
 	KubeServiceAccount    string
 	KubeNamePrefix        string
 	ChaincodeStartTimeout time.Duration
+	NameServers           string
+	CustomAnnotations     map[string]string
 }
 
 func (r *Run) Run(ctx context.Context) error {
@@ -78,6 +80,8 @@ func (r *Run) Run(ctx context.Context) error {
 		r.KubeServiceAccount,
 		r.KubeNodeRole,
 		r.PeerID,
+		r.NameServers,
+		r.CustomAnnotations,
 		chaincodeData,
 		imageData,
 	)

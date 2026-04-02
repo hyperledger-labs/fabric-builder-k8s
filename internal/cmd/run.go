@@ -113,6 +113,25 @@ func getChaincodeStartTimeout(logger *log.CmdLogger) (chaincodeStartTimeoutDurat
 	return chaincodeStartTimeoutDuration, true
 }
 
+func getNameServers(logger *log.CmdLogger) string {
+	nameServers := util.GetOptionalEnv(util.NameServersVariable, "")
+	logger.Debugf("%s=%s", util.NameServersVariable, nameServers)
+
+	return nameServers
+}
+
+func getCustomAnnotations(logger *log.CmdLogger) map[string]string {
+	annotationsStr := util.GetOptionalEnv(util.CustomAnnotationsVariable, "")
+	logger.Debugf("%s=%s", util.CustomAnnotationsVariable, annotationsStr)
+
+	annotations := util.ParseAnnotations(annotationsStr)
+	if len(annotations) > 0 {
+		logger.Debugf("Parsed custom annotations: %v", annotations)
+	}
+
+	return annotations
+}
+
 func Run() {
 	const (
 		expectedArgsLength      = 3
@@ -164,6 +183,9 @@ func Run() {
 		os.Exit(1)
 	}
 
+	nameServers := getNameServers(logger)
+	customAnnotations := getCustomAnnotations(logger)
+
 	run := &builder.Run{
 		BuildOutputDirectory:  buildOutputDirectory,
 		RunMetadataDirectory:  runMetadataDirectory,
@@ -174,6 +196,8 @@ func Run() {
 		KubeServiceAccount:    kubeServiceAccount,
 		KubeNamePrefix:        kubeNamePrefix,
 		ChaincodeStartTimeout: chaincodeStartTimeout,
+		NameServers:           nameServers,
+		CustomAnnotations:     customAnnotations,
 	}
 
 	if err := run.Run(ctx); err != nil {

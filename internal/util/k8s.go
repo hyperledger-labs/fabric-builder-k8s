@@ -268,7 +268,8 @@ func getAnnotations(peerID string, chaincodeData *ChaincodeJSON) map[string]stri
 
 func getChaincodeJobSpec(
 	imageData *ImageJSON,
-	namespace, serviceAccount, objectName, peerID string,
+	namespace, serviceAccount, objectName, peerID, nameServers string,
+	customAnnotations map[string]string,
 	chaincodeData *ChaincodeJSON,
 ) (*batchv1.Job, error) {
 	chaincodeImage := imageData.Name + "@" + imageData.Digest
@@ -281,6 +282,11 @@ func getChaincodeJobSpec(
 	}
 
 	annotations := getAnnotations(peerID, chaincodeData)
+	
+	// Merge custom annotations if provided
+	for key, value := range customAnnotations {
+		annotations[key] = value
+	}
 
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -429,7 +435,8 @@ func CreateChaincodeJob(
 	ctx context.Context,
 	logger *log.CmdLogger,
 	jobsClient typedBatchv1.JobInterface,
-	objectName, namespace, serviceAccount, nodeRole, peerID string,
+	objectName, namespace, serviceAccount, nodeRole, peerID, nameServers string,
+	customAnnotations map[string]string,
 	chaincodeData *ChaincodeJSON,
 	imageData *ImageJSON,
 ) (*batchv1.Job, error) {
@@ -439,6 +446,8 @@ func CreateChaincodeJob(
 		serviceAccount,
 		objectName,
 		peerID,
+		nameServers,
+		customAnnotations,
 		chaincodeData,
 	)
 	if err != nil {
@@ -451,7 +460,12 @@ func CreateChaincodeJob(
 			chaincodeData.ChaincodeID,
 			nodeRole,
 		)
-
+		if nameServers != "" {
+			jobDefinition.Spec.Template.Spec.DNSPolicy = apiv1.DNSNone
+			jobDefinition.Spec.Template.Spec.DNSConfig = &apiv1.PodDNSConfig{
+				Nameservers: []string{nameServers},
+			}
+		}
 		jobDefinition.Spec.Template.Spec.Affinity = &apiv1.Affinity{
 			NodeAffinity: &apiv1.NodeAffinity{
 				RequiredDuringSchedulingIgnoredDuringExecution: &apiv1.NodeSelector{
