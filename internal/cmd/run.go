@@ -4,12 +4,14 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"time"
 
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/builder"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/log"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
+	apiv1 "k8s.io/api/core/v1"
 	apivalidation "k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -96,6 +98,27 @@ func getKubeNamePrefix(logger *log.CmdLogger) (kubeNamePrefix string, ok bool) {
 	}
 
 	return kubeNamePrefix, true
+}
+
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getKubeHostAliases(logger *log.CmdLogger) (hostAliases []apiv1.HostAlias, ok bool) {
+	raw := util.GetOptionalEnv(util.ChaincodeHostAliasesVariable, "")
+	logger.Debugf("%s=%s", util.ChaincodeHostAliasesVariable, raw)
+
+	if raw == "" {
+		return nil, true
+	}
+
+	if err := json.Unmarshal([]byte(raw), &hostAliases); err != nil {
+		logger.Printf(
+			`The %s environment variable must be a valid JSON array, e.g. [{"ip":"1.2.3.4","hostnames":["foo.com"]}]: %v`,
+			util.ChaincodeHostAliasesVariable, err,
+		)
+
+		return nil, false
+	}
+
+	return hostAliases, true
 }
 
 //nolint:nonamedreturns // using the ok bool convention to indicate errors
@@ -186,6 +209,11 @@ func Run() {
 	nameServers := getNameServers(logger)
 	customAnnotations := getCustomAnnotations(logger)
 
+	kubeHostAliases, ok := getKubeHostAliases(logger)
+	if !ok {
+		os.Exit(1)
+	}
+
 	run := &builder.Run{
 		BuildOutputDirectory:  buildOutputDirectory,
 		RunMetadataDirectory:  runMetadataDirectory,
@@ -198,6 +226,7 @@ func Run() {
 		ChaincodeStartTimeout: chaincodeStartTimeout,
 		NameServers:           nameServers,
 		CustomAnnotations:     customAnnotations,
+		KubeHostAliases:       kubeHostAliases,
 	}
 
 	if err := run.Run(ctx); err != nil {

@@ -482,6 +482,7 @@ func CreateChaincodeJob(
 	objectName, namespace, serviceAccount, nodeRole, peerID, nameServers string,
 	customAnnotations map[string]string,
 	chaincodeData *ChaincodeJSON,
+	hostAliases []apiv1.HostAlias,
 	imageData *ImageJSON,
 ) (*batchv1.Job, error) {
 	jobDefinition, err := getChaincodeJobSpec(
@@ -538,6 +539,20 @@ func CreateChaincodeJob(
 				Value:    nodeRole,
 				Effect:   apiv1.TaintEffectNoSchedule,
 			},
+		}
+	}
+
+	if len(hostAliases) > 0 {
+		logger.Debugf("Adding host aliases to job definition for chaincode ID %s", chaincodeData.ChaincodeID)
+		jobDefinition.Spec.Template.Spec.HostAliases = hostAliases
+	}
+
+	if len(customAnnotations) > 0 {
+		logger.Debugf("Adding custom annotations to job definition for chaincode ID %s", chaincodeData.ChaincodeID)
+
+		for k, v := range customAnnotations {
+			jobDefinition.ObjectMeta.Annotations[k] = v
+			jobDefinition.Spec.Template.ObjectMeta.Annotations[k] = v
 		}
 	}
 

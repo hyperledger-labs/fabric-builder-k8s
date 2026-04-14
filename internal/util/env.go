@@ -17,6 +17,7 @@ const (
 	ChaincodeStartTimeoutVariable   = builderVariablePrefix + "START_TIMEOUT"
 	NameServersVariable             = builderVariablePrefix + "NAME_SERVERS"
 	CustomAnnotationsVariable       = builderVariablePrefix + "CUSTOM_ANNOTATIONS"
+	ChaincodeHostAliasesVariable    = builderVariablePrefix + "HOST_ALIASES"
 	DebugVariable                   = builderVariablePrefix + "DEBUG"
 	KubeconfigPathVariable          = "KUBECONFIG_PATH"
 	PeerIDVariable                  = "CORE_PEER_ID"
