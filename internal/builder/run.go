@@ -9,6 +9,7 @@ import (
 
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/log"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
+	apiv1 "k8s.io/api/core/v1"
 )
 
 type Run struct {
@@ -21,6 +22,9 @@ type Run struct {
 	KubeServiceAccount    string
 	KubeNamePrefix        string
 	ChaincodeStartTimeout time.Duration
+	KubeHostAliases       []apiv1.HostAlias
+	KubeCustomAnnotations map[string]string
+	ChaincodeEnvVars      []apiv1.EnvVar
 }
 
 func (r *Run) Run(ctx context.Context) error {
@@ -77,6 +81,9 @@ func (r *Run) Run(ctx context.Context) error {
 		r.KubeNamespace,
 		r.KubeServiceAccount,
 		r.KubeNodeRole,
+		r.KubeHostAliases,
+		r.KubeCustomAnnotations,
+		r.ChaincodeEnvVars,
 		r.PeerID,
 		chaincodeData,
 		imageData,

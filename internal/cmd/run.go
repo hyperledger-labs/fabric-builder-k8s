@@ -4,12 +4,14 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"time"
 
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/builder"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/log"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
+	apiv1 "k8s.io/api/core/v1"
 	apivalidation "k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -99,6 +101,74 @@ func getKubeNamePrefix(logger *log.CmdLogger) (kubeNamePrefix string, ok bool) {
 }
 
 //nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getKubeHostAliases(logger *log.CmdLogger) (hostAliases []apiv1.HostAlias, ok bool) {
+	raw := util.GetOptionalEnv(util.ChaincodeHostAliasesVariable, "")
+	logger.Debugf("%s=%s", util.ChaincodeHostAliasesVariable, raw)
+
+	if raw == "" {
+		return nil, true
+	}
+
+	if err := json.Unmarshal([]byte(raw), &hostAliases); err != nil {
+		logger.Printf(
+			`The %s environment variable must be a valid JSON array, e.g. [{"ip":"1.2.3.4","hostnames":["foo.com"]}]: %v`,
+			util.ChaincodeHostAliasesVariable, err,
+		)
+
+		return nil, false
+	}
+
+	return hostAliases, true
+}
+
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getKubeCustomAnnotations(logger *log.CmdLogger) (annotations map[string]string, ok bool) {
+	raw := util.GetOptionalEnv(util.ChaincodeAnnotationsVariable, "")
+	logger.Debugf("%s=%s", util.ChaincodeAnnotationsVariable, raw)
+
+	if raw == "" {
+		return nil, true
+	}
+
+	if err := json.Unmarshal([]byte(raw), &annotations); err != nil {
+		logger.Printf(
+			`The %s environment variable must be a valid JSON object, e.g. {"key":"value"}: %v`,
+			util.ChaincodeAnnotationsVariable, err,
+		)
+
+		return nil, false
+	}
+
+	return annotations, true
+}
+
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getChaincodeEnvVars(logger *log.CmdLogger) (envVars []apiv1.EnvVar, ok bool) {
+	raw := util.GetOptionalEnv(util.ChaincodeEnvVarsVariable, "")
+	logger.Debugf("%s=%s", util.ChaincodeEnvVarsVariable, raw)
+
+	if raw == "" {
+		return nil, true
+	}
+
+	var parsed map[string]string
+	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
+		logger.Printf(
+			`The %s environment variable must be a valid JSON object, e.g. {"KEY":"VALUE"}: %v`,
+			util.ChaincodeEnvVarsVariable, err,
+		)
+
+		return nil, false
+	}
+
+	for k, v := range parsed {
+		envVars = append(envVars, apiv1.EnvVar{Name: k, Value: v})
+	}
+
+	return envVars, true
+}
+
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
 func getChaincodeStartTimeout(logger *log.CmdLogger) (chaincodeStartTimeoutDuration time.Duration, ok bool) {
 	chaincodeStartTimeout := util.GetOptionalEnv(util.ChaincodeStartTimeoutVariable, util.DefaultStartTimeout)
 	logger.Debugf("%s=%s", util.ChaincodeStartTimeoutVariable, chaincodeStartTimeout)
@@ -164,6 +234,21 @@ func Run() {
 		os.Exit(1)
 	}
 
+	kubeHostAliases, ok := getKubeHostAliases(logger)
+	if !ok {
+		os.Exit(1)
+	}
+
+	kubeCustomAnnotations, ok := getKubeCustomAnnotations(logger)
+	if !ok {
+		os.Exit(1)
+	}
+
+	chaincodeEnvVars, ok := getChaincodeEnvVars(logger)
+	if !ok {
+		os.Exit(1)
+	}
+
 	run := &builder.Run{
 		BuildOutputDirectory:  buildOutputDirectory,
 		RunMetadataDirectory:  runMetadataDirectory,
@@ -174,6 +259,9 @@ func Run() {
 		KubeServiceAccount:    kubeServiceAccount,
 		KubeNamePrefix:        kubeNamePrefix,
 		ChaincodeStartTimeout: chaincodeStartTimeout,
+		KubeHostAliases:       kubeHostAliases,
+		KubeCustomAnnotations: kubeCustomAnnotations,
+		ChaincodeEnvVars:      chaincodeEnvVars,
 	}
 
 	if err := run.Run(ctx); err != nil {

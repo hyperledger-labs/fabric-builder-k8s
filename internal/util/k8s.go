@@ -270,6 +270,7 @@ func getChaincodeJobSpec(
 	imageData *ImageJSON,
 	namespace, serviceAccount, objectName, peerID string,
 	chaincodeData *ChaincodeJSON,
+	chaincodeEnvVars []apiv1.EnvVar,
 ) (*batchv1.Job, error) {
 	chaincodeImage := imageData.Name + "@" + imageData.Digest
 
@@ -308,7 +309,7 @@ func getChaincodeJobSpec(
 									ReadOnly:  true,
 								},
 							},
-							Env: []apiv1.EnvVar{
+							Env: append([]apiv1.EnvVar{
 								{
 									Name:  "CORE_CHAINCODE_ID_NAME",
 									Value: chaincodeData.ChaincodeID,
@@ -345,7 +346,7 @@ func getChaincodeJobSpec(
 									Name:  "CORE_PEER_LOCALMSPID",
 									Value: chaincodeData.MspID,
 								},
-							},
+							}, chaincodeEnvVars...),
 						},
 					},
 					RestartPolicy: apiv1.RestartPolicyNever,
@@ -429,7 +430,11 @@ func CreateChaincodeJob(
 	ctx context.Context,
 	logger *log.CmdLogger,
 	jobsClient typedBatchv1.JobInterface,
-	objectName, namespace, serviceAccount, nodeRole, peerID string,
+	objectName, namespace, serviceAccount, nodeRole string,
+	hostAliases []apiv1.HostAlias,
+	customAnnotations map[string]string,
+	chaincodeEnvVars []apiv1.EnvVar,
+	peerID string,
 	chaincodeData *ChaincodeJSON,
 	imageData *ImageJSON,
 ) (*batchv1.Job, error) {
@@ -440,6 +445,7 @@ func CreateChaincodeJob(
 		objectName,
 		peerID,
 		chaincodeData,
+		chaincodeEnvVars,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error getting chaincode job definition for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
@@ -477,6 +483,20 @@ func CreateChaincodeJob(
 				Value:    nodeRole,
 				Effect:   apiv1.TaintEffectNoSchedule,
 			},
+		}
+	}
+
+	if len(hostAliases) > 0 {
+		logger.Debugf("Adding host aliases to job definition for chaincode ID %s", chaincodeData.ChaincodeID)
+		jobDefinition.Spec.Template.Spec.HostAliases = hostAliases
+	}
+
+	if len(customAnnotations) > 0 {
+		logger.Debugf("Adding custom annotations to job definition for chaincode ID %s", chaincodeData.ChaincodeID)
+
+		for k, v := range customAnnotations {
+			jobDefinition.ObjectMeta.Annotations[k] = v
+			jobDefinition.Spec.Template.ObjectMeta.Annotations[k] = v
 		}
 	}
 
