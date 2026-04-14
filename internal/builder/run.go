@@ -70,11 +70,13 @@ func (r *Run) Run(ctx context.Context) error {
 	}
 
 	jobsClient := clientset.BatchV1().Jobs(r.KubeNamespace)
+	configMapsClient := clientset.CoreV1().ConfigMaps(r.KubeNamespace)
 
 	job, err := util.CreateChaincodeJob(
 		ctx,
 		logger,
 		jobsClient,
+		configMapsClient,
 		kubeObjectName,
 		r.KubeNamespace,
 		r.KubeServiceAccount,
