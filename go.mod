@@ -7,8 +7,8 @@ require (
 	github.com/onsi/gomega v1.39.1
 	github.com/otiai10/copy v1.14.1
 	github.com/rogpeppe/go-internal v1.14.1
-	k8s.io/api v0.35.2
-	k8s.io/apimachinery v0.35.2
+	k8s.io/api v0.35.4
+	k8s.io/apimachinery v0.35.4
 	k8s.io/client-go v0.35.2
 	sigs.k8s.io/e2e-framework v0.6.0
 )
@@ -32,7 +32,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/moby/spdystream v0.5.0 // indirect
+	github.com/moby/spdystream v0.5.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
