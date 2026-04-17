@@ -4,7 +4,9 @@ package util
 
 import (
 	"fmt"
+	"net"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -67,4 +69,51 @@ func ParseAnnotations(annotationsStr string) map[string]string {
 	}
 
 	return annotations
+}
+
+// IsValidIPAddress validates if a string is a valid IPv4 or IPv6 address.
+func IsValidIPAddress(ip string) bool {
+	return net.ParseIP(ip) != nil
+}
+
+// IsValidAnnotationKey validates if a string is a valid Kubernetes annotation key.
+// Annotation keys must be in the format: [prefix/]name
+// - prefix (optional): DNS subdomain (max 253 chars)
+// - name (required): max 63 chars, alphanumeric, '-', '_', '.'
+func IsValidAnnotationKey(key string) bool {
+	if key == "" {
+		return false
+	}
+
+	// Split into prefix and name
+	parts := strings.SplitN(key, "/", 2)
+	
+	var prefix, name string
+	if len(parts) == 2 {
+		prefix = parts[0]
+		name = parts[1]
+	} else {
+		name = parts[0]
+	}
+
+	// Validate prefix if present (DNS subdomain format)
+	if prefix != "" {
+		if len(prefix) > 253 {
+			return false
+		}
+		// DNS subdomain regex: lowercase alphanumeric, '-', '.'
+		dnsSubdomainRegex := regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$`)
+		if !dnsSubdomainRegex.MatchString(prefix) {
+			return false
+		}
+	}
+
+	// Validate name (required)
+	if name == "" || len(name) > 63 {
+		return false
+	}
+
+	// Name must be alphanumeric, '-', '_', '.' and start/end with alphanumeric
+	nameRegex := regexp.MustCompile(`^[a-zA-Z0-9]([-a-zA-Z0-9_.]*[a-zA-Z0-9])?$`)
+	return nameRegex.MatchString(name)
 }

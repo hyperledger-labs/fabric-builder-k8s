@@ -106,4 +106,65 @@ var _ = Describe("Main", func() {
 		Entry("When the FABRIC_K8S_BUILDER_START_TIMEOUT is missing a duration unit", "3", `run \[\d+\]: The FABRIC_K8S_BUILDER_START_TIMEOUT environment variable must be a valid Go duration string, e\.g\. 3m40s: time: missing unit in duration "3"`),
 		Entry("When the FABRIC_K8S_BUILDER_START_TIMEOUT is not a valid duration string", "three minutes", `run \[\d+\]: The FABRIC_K8S_BUILDER_START_TIMEOUT environment variable must be a valid Go duration string, e\.g\. 3m40s: time: invalid duration "three minutes"`),
 	)
+	DescribeTable("Running the run command produces the correct error for invalid FABRIC_K8S_BUILDER_NAME_SERVERS environment variable values",
+		func(nameServersValue, expectedErrorMessage string) {
+			args := []string{"BUILD_OUTPUT_DIR", "RUN_METADATA_DIR"}
+			command := exec.Command(runCmdPath, args...)
+			command.Env = append(os.Environ(),
+				"CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789",
+				"FABRIC_K8S_BUILDER_NAME_SERVERS="+nameServersValue,
+			)
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(session).Should(gexec.Exit(1))
+			Eventually(
+				session.Err,
+			).Should(gbytes.Say(expectedErrorMessage))
+		},
+		Entry("When the FABRIC_K8S_BUILDER_NAME_SERVERS is not a valid IP address", "invalid-ip", `run \[\d+\]: The FABRIC_K8S_BUILDER_NAME_SERVERS environment variable must be a valid IP address`),
+		Entry("When the FABRIC_K8S_BUILDER_NAME_SERVERS is an incomplete IP", "192.168.1", `run \[\d+\]: The FABRIC_K8S_BUILDER_NAME_SERVERS environment variable must be a valid IP address`),
+		Entry("When the FABRIC_K8S_BUILDER_NAME_SERVERS contains invalid characters", "10.96.0.10.extra", `run \[\d+\]: The FABRIC_K8S_BUILDER_NAME_SERVERS environment variable must be a valid IP address`),
+	)
+	DescribeTable("Running the run command produces the correct error for invalid FABRIC_K8S_BUILDER_CUSTOM_ANNOTATIONS environment variable values",
+		func(customAnnotationsValue, expectedErrorMessage string) {
+			args := []string{"BUILD_OUTPUT_DIR", "RUN_METADATA_DIR"}
+			command := exec.Command(runCmdPath, args...)
+			command.Env = append(os.Environ(),
+				"CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789",
+				"FABRIC_K8S_BUILDER_CUSTOM_ANNOTATIONS="+customAnnotationsValue,
+			)
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(session).Should(gexec.Exit(1))
+			Eventually(
+				session.Err,
+			).Should(gbytes.Say(expectedErrorMessage))
+		},
+		Entry("When the FABRIC_K8S_BUILDER_CUSTOM_ANNOTATIONS contains invalid annotation key", "invalid*key=value", `run \[\d+\]: The FABRIC_K8S_BUILDER_CUSTOM_ANNOTATIONS environment variable contains an invalid annotation key 'invalid\*key': must be a valid Kubernetes annotation key`),
+		Entry("When the FABRIC_K8S_BUILDER_CUSTOM_ANNOTATIONS contains key starting with dash", "-key=value", `run \[\d+\]: The FABRIC_K8S_BUILDER_CUSTOM_ANNOTATIONS environment variable contains an invalid annotation key '-key': must be a valid Kubernetes annotation key`),
+	)
+
+	DescribeTable("Running the run command produces the correct error for invalid FABRIC_K8S_BUILDER_HOST_ALIASES environment variable values",
+		func(hostAliasesValue, expectedErrorMessage string) {
+			args := []string{"BUILD_OUTPUT_DIR", "RUN_METADATA_DIR"}
+			command := exec.Command(runCmdPath, args...)
+			command.Env = append(os.Environ(),
+				"CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789",
+				"FABRIC_K8S_BUILDER_HOST_ALIASES="+hostAliasesValue,
+			)
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(session).Should(gexec.Exit(1))
+			Eventually(
+				session.Err,
+			).Should(gbytes.Say(expectedErrorMessage))
+		},
+		Entry("When the FABRIC_K8S_BUILDER_HOST_ALIASES is not valid JSON", `[{"ip":"1.2.3.4"`, `run \[\d+\]: The FABRIC_K8S_BUILDER_HOST_ALIASES environment variable must be a valid JSON array`),
+		Entry("When the FABRIC_K8S_BUILDER_HOST_ALIASES contains invalid IP", `[{"ip":"invalid","hostnames":["foo.com"]}]`, `run \[\d+\]: The FABRIC_K8S_BUILDER_HOST_ALIASES environment variable contains an invalid IP address 'invalid' at index 0`),
+		Entry("When the FABRIC_K8S_BUILDER_HOST_ALIASES contains empty IP", `[{"ip":"","hostnames":["foo.com"]}]`, `run \[\d+\]: The FABRIC_K8S_BUILDER_HOST_ALIASES environment variable contains a host alias at index 0 with an empty IP address`),
+		Entry("When the FABRIC_K8S_BUILDER_HOST_ALIASES contains no hostnames", `[{"ip":"1.2.3.4","hostnames":[]}]`, `run \[\d+\]: The FABRIC_K8S_BUILDER_HOST_ALIASES environment variable contains a host alias at index 0 with no hostnames`),
+	)
 })

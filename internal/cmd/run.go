@@ -118,6 +118,24 @@ func getKubeHostAliases(logger *log.CmdLogger) (hostAliases []apiv1.HostAlias, o
 		return nil, false
 	}
 
+	// Validate IP addresses in host aliases
+	for i, hostAlias := range hostAliases {
+		if hostAlias.IP == "" {
+			logger.Printf("The %s environment variable contains a host alias at index %d with an empty IP address", util.ChaincodeHostAliasesVariable, i)
+			return nil, false
+		}
+
+		if !util.IsValidIPAddress(hostAlias.IP) {
+			logger.Printf("The %s environment variable contains an invalid IP address '%s' at index %d", util.ChaincodeHostAliasesVariable, hostAlias.IP, i)
+			return nil, false
+		}
+
+		if len(hostAlias.Hostnames) == 0 {
+			logger.Printf("The %s environment variable contains a host alias at index %d with no hostnames", util.ChaincodeHostAliasesVariable, i)
+			return nil, false
+		}
+	}
+
 	return hostAliases, true
 }
 
@@ -136,23 +154,46 @@ func getChaincodeStartTimeout(logger *log.CmdLogger) (chaincodeStartTimeoutDurat
 	return chaincodeStartTimeoutDuration, true
 }
 
-func getNameServers(logger *log.CmdLogger) string {
-	nameServers := util.GetOptionalEnv(util.NameServersVariable, "")
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getNameServers(logger *log.CmdLogger) (nameServers string, ok bool) {
+	nameServers = util.GetOptionalEnv(util.NameServersVariable, "")
 	logger.Debugf("%s=%s", util.NameServersVariable, nameServers)
 
-	return nameServers
+	if nameServers == "" {
+		return nameServers, true
+	}
+
+	// Validate IP address format
+	if !util.IsValidIPAddress(nameServers) {
+		logger.Printf("The %s environment variable must be a valid IP address", util.NameServersVariable)
+		return "", false
+	}
+
+	return nameServers, true
 }
 
-func getCustomAnnotations(logger *log.CmdLogger) map[string]string {
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getCustomAnnotations(logger *log.CmdLogger) (annotations map[string]string, ok bool) {
 	annotationsStr := util.GetOptionalEnv(util.CustomAnnotationsVariable, "")
 	logger.Debugf("%s=%s", util.CustomAnnotationsVariable, annotationsStr)
 
-	annotations := util.ParseAnnotations(annotationsStr)
-	if len(annotations) > 0 {
-		logger.Debugf("Parsed custom annotations: %v", annotations)
+	if annotationsStr == "" {
+		return make(map[string]string), true
 	}
 
-	return annotations
+	annotations = util.ParseAnnotations(annotationsStr)
+
+	// Validate annotation keys follow Kubernetes naming conventions
+	for key := range annotations {
+		if !util.IsValidAnnotationKey(key) {
+			logger.Printf("The %s environment variable contains an invalid annotation key '%s': must be a valid Kubernetes annotation key", util.CustomAnnotationsVariable, key)
+			return nil, false
+		}
+	}
+
+	logger.Debugf("Parsed custom annotations: %v", annotations)
+
+	return annotations, true
 }
 
 func Run() {
@@ -206,8 +247,15 @@ func Run() {
 		os.Exit(1)
 	}
 
-	nameServers := getNameServers(logger)
-	customAnnotations := getCustomAnnotations(logger)
+	nameServers, ok := getNameServers(logger)
+	if !ok {
+		os.Exit(1)
+	}
+
+	customAnnotations, ok := getCustomAnnotations(logger)
+	if !ok {
+		os.Exit(1)
+	}
 
 	kubeHostAliases, ok := getKubeHostAliases(logger)
 	if !ok {
