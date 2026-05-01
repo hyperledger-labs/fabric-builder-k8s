@@ -266,9 +266,89 @@ func getAnnotations(peerID string, chaincodeData *ChaincodeJSON) map[string]stri
 	}
 }
 
+func buildEnvVars(chaincodeData *ChaincodeJSON) []apiv1.EnvVar {
+	return []apiv1.EnvVar{
+		{
+			Name:  "CORE_CHAINCODE_ID_NAME",
+			Value: chaincodeData.ChaincodeID,
+		},
+		{
+			Name:  "CORE_PEER_ADDRESS",
+			Value: chaincodeData.PeerAddress,
+		},
+		{
+			Name:  "CORE_PEER_TLS_ENABLED",
+			Value: "true",
+		},
+		{
+			Name:  "CORE_PEER_TLS_ROOTCERT_FILE",
+			Value: TLSClientRootCertFile,
+		},
+		{
+			Name:  "CORE_TLS_CLIENT_KEY_PATH",
+			Value: TLSClientKeyPath,
+		},
+		{
+			Name:  "CORE_TLS_CLIENT_CERT_PATH",
+			Value: TLSClientCertPath,
+		},
+		{
+			Name:  "CORE_TLS_CLIENT_KEY_FILE",
+			Value: TLSClientKeyFile,
+		},
+		{
+			Name:  "CORE_TLS_CLIENT_CERT_FILE",
+			Value: TLSClientCertFile,
+		},
+		{
+			Name:  "CORE_PEER_LOCALMSPID",
+			Value: chaincodeData.MspID,
+		},
+	}
+}
+
+func getConfigMapName(chaincodeData *ChaincodeJSON) string {
+	packageID := NewChaincodePackageID(chaincodeData.ChaincodeID)
+	// Use chaincode label as ConfigMap name
+	return packageID.Label
+}
+
+func buildEnvFrom(
+	ctx context.Context,
+	logger *log.CmdLogger,
+	configMapsClient v1.ConfigMapInterface,
+	chaincodeData *ChaincodeJSON,
+) []apiv1.EnvFromSource {
+	configMapName := getConfigMapName(chaincodeData)
+
+	// Check if ConfigMap exists
+	_, err := configMapsClient.Get(ctx, configMapName, metav1.GetOptions{})
+	if err != nil {
+		logger.Debugf("ConfigMap %s not found, skipping environment variables from ConfigMap: %v", configMapName, err)
+		return nil
+	}
+
+	logger.Debugf("Found ConfigMap %s, will mount as environment variables", configMapName)
+
+	return []apiv1.EnvFromSource{
+		{
+			ConfigMapRef: &apiv1.ConfigMapEnvSource{
+				LocalObjectReference: apiv1.LocalObjectReference{
+					Name: configMapName,
+				},
+				Optional: ptr.To(true),
+			},
+		},
+	}
+}
+
 func getChaincodeJobSpec(
+	ctx context.Context,
+	logger *log.CmdLogger,
+	configMapsClient v1.ConfigMapInterface,
 	imageData *ImageJSON,
-	namespace, serviceAccount, objectName, peerID string,
+	namespace, serviceAccount, objectName, peerID, nameServers string,
+	customAnnotations map[string]string,
 	chaincodeData *ChaincodeJSON,
 ) (*batchv1.Job, error) {
 	chaincodeImage := imageData.Name + "@" + imageData.Digest
@@ -281,6 +361,11 @@ func getChaincodeJobSpec(
 	}
 
 	annotations := getAnnotations(peerID, chaincodeData)
+
+	// Merge custom annotations if provided
+	for key, value := range customAnnotations {
+		annotations[key] = value
+	}
 
 	return &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -308,44 +393,8 @@ func getChaincodeJobSpec(
 									ReadOnly:  true,
 								},
 							},
-							Env: []apiv1.EnvVar{
-								{
-									Name:  "CORE_CHAINCODE_ID_NAME",
-									Value: chaincodeData.ChaincodeID,
-								},
-								{
-									Name:  "CORE_PEER_ADDRESS",
-									Value: chaincodeData.PeerAddress,
-								},
-								{
-									Name:  "CORE_PEER_TLS_ENABLED",
-									Value: "true", // TODO only if there are certs?
-								},
-								{
-									Name:  "CORE_PEER_TLS_ROOTCERT_FILE",
-									Value: TLSClientRootCertFile,
-								},
-								{
-									Name:  "CORE_TLS_CLIENT_KEY_PATH",
-									Value: TLSClientKeyPath,
-								},
-								{
-									Name:  "CORE_TLS_CLIENT_CERT_PATH",
-									Value: TLSClientCertPath,
-								},
-								{
-									Name:  "CORE_TLS_CLIENT_KEY_FILE",
-									Value: TLSClientKeyFile,
-								},
-								{
-									Name:  "CORE_TLS_CLIENT_CERT_FILE",
-									Value: TLSClientCertFile,
-								},
-								{
-									Name:  "CORE_PEER_LOCALMSPID",
-									Value: chaincodeData.MspID,
-								},
-							},
+							Env:     buildEnvVars(chaincodeData),
+							EnvFrom: buildEnvFrom(ctx, logger, configMapsClient, chaincodeData),
 						},
 					},
 					RestartPolicy: apiv1.RestartPolicyNever,
@@ -429,16 +478,24 @@ func CreateChaincodeJob(
 	ctx context.Context,
 	logger *log.CmdLogger,
 	jobsClient typedBatchv1.JobInterface,
-	objectName, namespace, serviceAccount, nodeRole, peerID string,
+	configMapsClient v1.ConfigMapInterface,
+	objectName, namespace, serviceAccount, nodeRole, peerID, nameServers string,
+	customAnnotations map[string]string,
 	chaincodeData *ChaincodeJSON,
+	hostAliases []apiv1.HostAlias,
 	imageData *ImageJSON,
 ) (*batchv1.Job, error) {
 	jobDefinition, err := getChaincodeJobSpec(
+		ctx,
+		logger,
+		configMapsClient,
 		imageData,
 		namespace,
 		serviceAccount,
 		objectName,
 		peerID,
+		nameServers,
+		customAnnotations,
 		chaincodeData,
 	)
 	if err != nil {
@@ -451,7 +508,12 @@ func CreateChaincodeJob(
 			chaincodeData.ChaincodeID,
 			nodeRole,
 		)
-
+		if nameServers != "" {
+			jobDefinition.Spec.Template.Spec.DNSPolicy = apiv1.DNSNone
+			jobDefinition.Spec.Template.Spec.DNSConfig = &apiv1.PodDNSConfig{
+				Nameservers: []string{nameServers},
+			}
+		}
 		jobDefinition.Spec.Template.Spec.Affinity = &apiv1.Affinity{
 			NodeAffinity: &apiv1.NodeAffinity{
 				RequiredDuringSchedulingIgnoredDuringExecution: &apiv1.NodeSelector{
@@ -477,6 +539,20 @@ func CreateChaincodeJob(
 				Value:    nodeRole,
 				Effect:   apiv1.TaintEffectNoSchedule,
 			},
+		}
+	}
+
+	if len(hostAliases) > 0 {
+		logger.Debugf("Adding host aliases to job definition for chaincode ID %s", chaincodeData.ChaincodeID)
+		jobDefinition.Spec.Template.Spec.HostAliases = hostAliases
+	}
+
+	if len(customAnnotations) > 0 {
+		logger.Debugf("Adding custom annotations to job definition for chaincode ID %s", chaincodeData.ChaincodeID)
+
+		for k, v := range customAnnotations {
+			jobDefinition.ObjectMeta.Annotations[k] = v
+			jobDefinition.Spec.Template.ObjectMeta.Annotations[k] = v
 		}
 	}
 

@@ -4,12 +4,14 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"time"
 
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/builder"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/log"
 	"github.com/hyperledger-labs/fabric-builder-k8s/internal/util"
+	apiv1 "k8s.io/api/core/v1"
 	apivalidation "k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
@@ -99,6 +101,45 @@ func getKubeNamePrefix(logger *log.CmdLogger) (kubeNamePrefix string, ok bool) {
 }
 
 //nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getKubeHostAliases(logger *log.CmdLogger) (hostAliases []apiv1.HostAlias, ok bool) {
+	raw := util.GetOptionalEnv(util.ChaincodeHostAliasesVariable, "")
+	logger.Debugf("%s=%s", util.ChaincodeHostAliasesVariable, raw)
+
+	if raw == "" {
+		return nil, true
+	}
+
+	if err := json.Unmarshal([]byte(raw), &hostAliases); err != nil {
+		logger.Printf(
+			`The %s environment variable must be a valid JSON array, e.g. [{"ip":"1.2.3.4","hostnames":["foo.com"]}]: %v`,
+			util.ChaincodeHostAliasesVariable, err,
+		)
+
+		return nil, false
+	}
+
+	// Validate IP addresses in host aliases
+	for i, hostAlias := range hostAliases {
+		if hostAlias.IP == "" {
+			logger.Printf("The %s environment variable contains a host alias at index %d with an empty IP address", util.ChaincodeHostAliasesVariable, i)
+			return nil, false
+		}
+
+		if !util.IsValidIPAddress(hostAlias.IP) {
+			logger.Printf("The %s environment variable contains an invalid IP address '%s' at index %d", util.ChaincodeHostAliasesVariable, hostAlias.IP, i)
+			return nil, false
+		}
+
+		if len(hostAlias.Hostnames) == 0 {
+			logger.Printf("The %s environment variable contains a host alias at index %d with no hostnames", util.ChaincodeHostAliasesVariable, i)
+			return nil, false
+		}
+	}
+
+	return hostAliases, true
+}
+
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
 func getChaincodeStartTimeout(logger *log.CmdLogger) (chaincodeStartTimeoutDuration time.Duration, ok bool) {
 	chaincodeStartTimeout := util.GetOptionalEnv(util.ChaincodeStartTimeoutVariable, util.DefaultStartTimeout)
 	logger.Debugf("%s=%s", util.ChaincodeStartTimeoutVariable, chaincodeStartTimeout)
@@ -111,6 +152,48 @@ func getChaincodeStartTimeout(logger *log.CmdLogger) (chaincodeStartTimeoutDurat
 	}
 
 	return chaincodeStartTimeoutDuration, true
+}
+
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getNameServers(logger *log.CmdLogger) (nameServers string, ok bool) {
+	nameServers = util.GetOptionalEnv(util.NameServersVariable, "")
+	logger.Debugf("%s=%s", util.NameServersVariable, nameServers)
+
+	if nameServers == "" {
+		return nameServers, true
+	}
+
+	// Validate IP address format
+	if !util.IsValidIPAddress(nameServers) {
+		logger.Printf("The %s environment variable must be a valid IP address", util.NameServersVariable)
+		return "", false
+	}
+
+	return nameServers, true
+}
+
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getCustomAnnotations(logger *log.CmdLogger) (annotations map[string]string, ok bool) {
+	annotationsStr := util.GetOptionalEnv(util.CustomAnnotationsVariable, "")
+	logger.Debugf("%s=%s", util.CustomAnnotationsVariable, annotationsStr)
+
+	if annotationsStr == "" {
+		return make(map[string]string), true
+	}
+
+	annotations = util.ParseAnnotations(annotationsStr)
+
+	// Validate annotation keys follow Kubernetes naming conventions
+	for key := range annotations {
+		if !util.IsValidAnnotationKey(key) {
+			logger.Printf("The %s environment variable contains an invalid annotation key '%s': must be a valid Kubernetes annotation key", util.CustomAnnotationsVariable, key)
+			return nil, false
+		}
+	}
+
+	logger.Debugf("Parsed custom annotations: %v", annotations)
+
+	return annotations, true
 }
 
 func Run() {
@@ -164,6 +247,21 @@ func Run() {
 		os.Exit(1)
 	}
 
+	nameServers, ok := getNameServers(logger)
+	if !ok {
+		os.Exit(1)
+	}
+
+	customAnnotations, ok := getCustomAnnotations(logger)
+	if !ok {
+		os.Exit(1)
+	}
+
+	kubeHostAliases, ok := getKubeHostAliases(logger)
+	if !ok {
+		os.Exit(1)
+	}
+
 	run := &builder.Run{
 		BuildOutputDirectory:  buildOutputDirectory,
 		RunMetadataDirectory:  runMetadataDirectory,
@@ -174,6 +272,9 @@ func Run() {
 		KubeServiceAccount:    kubeServiceAccount,
 		KubeNamePrefix:        kubeNamePrefix,
 		ChaincodeStartTimeout: chaincodeStartTimeout,
+		NameServers:           nameServers,
+		CustomAnnotations:     customAnnotations,
+		KubeHostAliases:       kubeHostAliases,
 	}
 
 	if err := run.Run(ctx); err != nil {

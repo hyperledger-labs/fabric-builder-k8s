@@ -18,6 +18,9 @@ externalBuilders:
       - FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX
       - FABRIC_K8S_BUILDER_SERVICE_ACCOUNT
       - FABRIC_K8S_BUILDER_START_TIMEOUT
+      - FABRIC_K8S_BUILDER_NAME_SERVERS
+      - FABRIC_K8S_BUILDER_CUSTOM_ANNOTATIONS
+      - FABRIC_K8S_BUILDER_HOST_ALIASES
       - KUBERNETES_SERVICE_HOST
       - KUBERNETES_SERVICE_PORT
 ```
@@ -41,14 +44,68 @@ For more information, see [Configuring external builders and launchers](https://
 
 The k8s builder is configured using the following environment variables.
 
-| Name                                  | Default                          | Description                                          |
-| ------------------------------------- | -------------------------------- | ---------------------------------------------------- |
-| CORE_PEER_ID                          |                                  | The Fabric peer ID (required)                        |
-| FABRIC_K8S_BUILDER_NAMESPACE          | The peer namespace or `default`  | The Kubernetes namespace to run chaincode with       |
-| FABRIC_K8S_BUILDER_NODE_ROLE          |                                  | Use dedicated Kubernetes nodes to run chaincode      |
-| FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX | `hlfcc`                          | Eye-catcher prefix for Kubernetes object names       |
-| FABRIC_K8S_BUILDER_SERVICE_ACCOUNT    | `default`                        | The Kubernetes service account to run chaincode with |
-| FABRIC_K8S_BUILDER_START_TIMEOUT      | `3m`                             | The timeout when waiting for chaincode pods to start |
-| FABRIC_K8S_BUILDER_DEBUG              | `false`                          | Set to `true` to enable k8s builder debug messages   |
+| Name                                     | Default                          | Description                                                                      |
+| ---------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------- |
+| CORE_PEER_ID                             |                                  | The Fabric peer ID (required)                                                    |
+| FABRIC_K8S_BUILDER_NAMESPACE             | The peer namespace or `default`  | The Kubernetes namespace to run chaincode with                                   |
+| FABRIC_K8S_BUILDER_NODE_ROLE             |                                  | Use dedicated Kubernetes nodes to run chaincode                                  |
+| FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX    | `hlfcc`                          | Eye-catcher prefix for Kubernetes object names                                   |
+| FABRIC_K8S_BUILDER_SERVICE_ACCOUNT       | `default`                        | The Kubernetes service account to run chaincode with                             |
+| FABRIC_K8S_BUILDER_START_TIMEOUT         | `3m`                             | The timeout when waiting for chaincode pods to start                             |
+| FABRIC_K8S_BUILDER_NAME_SERVERS          |                                  | Custom DNS nameserver IP for chaincode pods (optional, enables custom DNS)       |
+| FABRIC_K8S_BUILDER_CUSTOM_ANNOTATIONS    |                                  | Custom annotations for chaincode pods (optional, comma-separated key=value pairs)|
+| FABRIC_K8S_BUILDER_HOST_ALIASES          |                                  | Host aliases for chaincode pods (optional, JSON array format)                    |
+| FABRIC_K8S_BUILDER_DEBUG                 | `false`                          | Set to `true` to enable k8s builder debug messages                               |
 
 The k8s builder can be run in cluster using the `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT` environment variables, or it can connect using a `KUBECONFIG_PATH` environment variable.
+
+
+## Host Aliases Configuration
+
+The `FABRIC_K8S_BUILDER_HOST_ALIASES` environment variable allows you to add custom host-to-IP mappings in chaincode pods. This is useful when chaincode needs to resolve custom hostnames that are not available in DNS.
+
+### Format
+
+The value must be a valid JSON array of host alias objects. Each object contains:
+- `ip`: The IP address (string)
+- `hostnames`: Array of hostnames that should resolve to this IP (array of strings)
+
+### Example
+
+```bash
+export FABRIC_K8S_BUILDER_HOST_ALIASES='[{"ip":"1.2.3.4","hostnames":["foo.com","bar.com"]},{"ip":"5.6.7.8","hostnames":["example.org"]}]'
+```
+
+This configuration will add the following entries to the chaincode pod's `/etc/hosts` file:
+```
+1.2.3.4  foo.com bar.com
+5.6.7.8  example.org
+```
+
+### Use Cases
+
+- **Private Services**: Resolve internal service names to private IP addresses
+- **Testing**: Override DNS resolution for testing purposes
+- **Legacy Systems**: Connect to systems with non-standard hostname requirements
+- **Service Mesh**: Custom routing for service mesh configurations
+
+### Validation
+
+The builder will validate the JSON format when creating chaincode pods. Invalid JSON will cause the chaincode deployment to fail with an error message indicating the parsing issue.
+
+### Example Configurations
+
+**Single host alias:**
+```bash
+export FABRIC_K8S_BUILDER_HOST_ALIASES='[{"ip":"192.168.1.100","hostnames":["database.local"]}]'
+```
+
+**Multiple hosts to same IP:**
+```bash
+export FABRIC_K8S_BUILDER_HOST_ALIASES='[{"ip":"10.0.0.50","hostnames":["api.internal","api.local","api"]}]'
+```
+
+**Multiple IP mappings:**
+```bash
+export FABRIC_K8S_BUILDER_HOST_ALIASES='[{"ip":"10.0.1.10","hostnames":["db1.local"]},{"ip":"10.0.1.11","hostnames":["db2.local"]},{"ip":"10.0.1.12","hostnames":["cache.local"]}]'
+```
