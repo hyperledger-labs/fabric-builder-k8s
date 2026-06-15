@@ -32,6 +32,8 @@ import (
 )
 
 const (
+	fabricBuilderK8s string = "fabric-builder-k8s"
+
 	namespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 	jobTTL        = 5 * time.Minute
 
@@ -250,8 +252,8 @@ func getLabels(chaincodeData *ChaincodeJSON) (map[string]string, error) {
 	return map[string]string{
 		"app.kubernetes.io/name":       "hyperledger-fabric",
 		"app.kubernetes.io/component":  "chaincode",
-		"app.kubernetes.io/created-by": "fabric-builder-k8s",
-		"app.kubernetes.io/managed-by": "fabric-builder-k8s",
+		"app.kubernetes.io/created-by": fabricBuilderK8s,
+		"app.kubernetes.io/managed-by": fabricBuilderK8s,
 		"fabric-builder-k8s-cclabel":   packageID.Label,
 		"fabric-builder-k8s-cchash":    encodedPackageHash,
 	}, nil
@@ -409,7 +411,7 @@ func ApplyChaincodeSecrets(
 	result, err := secretsClient.Apply(
 		ctx,
 		secret,
-		metav1.ApplyOptions{FieldManager: "fabric-builder-k8s"},
+		metav1.ApplyOptions{FieldManager: fabricBuilderK8s},
 	)
 	if err != nil {
 		return fmt.Errorf("error applying chaincode secret definition for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)

@@ -21,6 +21,7 @@ var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(5 * time.Second)
 
 	var err error
+
 	releaseCmdPath, err = gexec.Build("github.com/hyperledger-labs/fabric-builder-k8s/cmd/release")
 	Expect(err).NotTo(HaveOccurred())
 })

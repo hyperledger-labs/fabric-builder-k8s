@@ -11,6 +11,7 @@ import (
 
 var _ = Describe("Main", func() {
 	var tempDir string
+
 	BeforeEach(func() {
 		tempDir = GinkgoT().TempDir()
 	})
