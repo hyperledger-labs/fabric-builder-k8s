@@ -44,7 +44,7 @@ func getKubeNamespace(logger *log.CmdLogger) string {
 
 		kubeNamespace, err = util.GetKubeNamespace()
 		if err != nil {
-			logger.Debugf("Error getting namespace: %w\n", err)
+			logger.Debugf("Error getting namespace: %+v\n", err)
 
 			kubeNamespace = util.DefaultNamespace
 		}
