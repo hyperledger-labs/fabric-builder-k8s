@@ -12,7 +12,7 @@
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:3": {
 			"enableNonRootDocker": true,
-			"moby": true,
+			"moby": false,
 			"azureDnsAutoDetection": true,
 			"installDockerBuildx": true,
 			"installDockerComposeSwitch": false,

@@ -30,7 +30,7 @@ linters:
     - godot
     - goheader
     - gomoddirectives
-    - gomodguard
+    - gomodguard_v2
     - goprintffuncname
     - gosec
     - govet
@@ -73,6 +73,8 @@ linters:
       errorf: true
     funlen:
       lines: 100
+    goconst:
+      ignore-tests: true
     nolintlint:
       require-explanation: true
       require-specific: true

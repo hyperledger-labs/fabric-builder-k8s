@@ -47,6 +47,7 @@ var _ = Describe("Main", func() {
 		func(kubeNodeRoleValue, expectedErrorMessage string) {
 			args := []string{"BUILD_OUTPUT_DIR", "RUN_METADATA_DIR"}
 			command := exec.Command(runCmdPath, args...)
+
 			command.Env = append(os.Environ(),
 				"CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789",
 				"FABRIC_K8S_BUILDER_NODE_ROLE="+kubeNodeRoleValue,
@@ -69,6 +70,7 @@ var _ = Describe("Main", func() {
 		func(kubeNamePrefixValue, expectedErrorMessage string) {
 			args := []string{"BUILD_OUTPUT_DIR", "RUN_METADATA_DIR"}
 			command := exec.Command(runCmdPath, args...)
+
 			command.Env = append(os.Environ(),
 				"CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789",
 				"FABRIC_K8S_BUILDER_OBJECT_NAME_PREFIX="+kubeNamePrefixValue,
@@ -91,6 +93,7 @@ var _ = Describe("Main", func() {
 		func(chaincodeStartTimeoutValue, expectedErrorMessage string) {
 			args := []string{"BUILD_OUTPUT_DIR", "RUN_METADATA_DIR"}
 			command := exec.Command(runCmdPath, args...)
+
 			command.Env = append(os.Environ(),
 				"CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789",
 				"FABRIC_K8S_BUILDER_START_TIMEOUT="+chaincodeStartTimeoutValue,

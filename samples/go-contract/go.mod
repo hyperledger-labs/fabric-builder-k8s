@@ -1,6 +1,6 @@
 module github.com/hyperledger-labs/fabric-builder-k8s/samples/go-contract
 
-go 1.25.0
+go 1.26.0
 
 require github.com/hyperledger/fabric-contract-api-go/v2 v2.2.1
 
