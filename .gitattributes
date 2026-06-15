@@ -1,0 +1,7 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Override defaults for the gradle wrapper.
+gradle-wrapper.jar binary
+gradlew text eol=lf
+gradlew.bat text eol=crlf
