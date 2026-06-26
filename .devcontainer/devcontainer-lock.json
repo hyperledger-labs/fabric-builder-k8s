@@ -10,10 +10,10 @@
       "resolved": "ghcr.io/devcontainers-extra/features/mkdocs@sha256:bfb6865b0fb7ae25ccf2df1dcdb937452bdf6b3dc2055f530aee2a663c07f4a0",
       "integrity": "sha256:bfb6865b0fb7ae25ccf2df1dcdb937452bdf6b3dc2055f530aee2a663c07f4a0"
     },
-    "ghcr.io/devcontainers/features/docker-in-docker:3": {
-      "version": "3.0.1",
-      "resolved": "ghcr.io/devcontainers/features/docker-in-docker@sha256:ca2508495b01ba29eba93e8153772a2daa65eaa86471cc6863fe2a3d21933df9",
-      "integrity": "sha256:ca2508495b01ba29eba93e8153772a2daa65eaa86471cc6863fe2a3d21933df9"
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "version": "4.0.0",
+      "resolved": "ghcr.io/devcontainers/features/docker-in-docker@sha256:4fa87399214366e320d489991769c4f3f461e1ffe461f54eea78a41b34945bb5",
+      "integrity": "sha256:4fa87399214366e320d489991769c4f3f461e1ffe461f54eea78a41b34945bb5"
     },
     "ghcr.io/devcontainers/features/java:1": {
       "version": "1.8.0",
