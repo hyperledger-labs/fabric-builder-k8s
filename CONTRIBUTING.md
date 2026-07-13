@@ -96,8 +96,8 @@ In a new shell in the `.fabric/test-network-nano-bash` directory.
 
 ```shell
 curl -fsSL \
-  https://github.com/hyperledger-labs/fabric-builder-k8s/releases/download/v0.7.2/go-contract-v0.7.2.tgz \
-  -o go-contract-v0.7.2.tgz
+  https://github.com/hyperledger-labs/fabric-builder-k8s/releases/download/v0.15.2/go-contract-v0.15.2.tgz \
+  -o go-contract-v0.15.2.tgz
 ```
 
 Set up the environment for running peer commands and check everything is working.
@@ -110,13 +110,13 @@ peer channel list
 Deploy the chaincode package as usual, starting by installing the k8s chaincode package.
 
 ```shell
-peer lifecycle chaincode install go-contract-v0.7.2.tgz
+peer lifecycle chaincode install go-contract-v0.15.2.tgz
 ```
 
 Export a `PACKAGE_ID` environment variable for use in the following commands.
 
 ```shell
-export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid go-contract-v0.7.2.tgz) && echo $PACKAGE_ID
+export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid go-contract-v0.15.2.tgz) && echo $PACKAGE_ID
 ```
 
 Note: the `PACKAGE_ID` must match the chaincode code package identifier shown by the `peer lifecycle chaincode install` command.
