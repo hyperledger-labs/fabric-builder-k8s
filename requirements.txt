@@ -124,9 +124,9 @@ ghp-import==2.1.0 \
 idna==3.18 \
     --hash=sha256:7f952cbe720b688055e3f87de14f5c3e5fdaa8bc3928985c4077ca689de849a2 \
     --hash=sha256:ffb385a7e039654cef1ab9ef32c6fafe283c0c0467bba1d9029738ce4a14a848
-importlib-metadata==8.7.1 \
-    --hash=sha256:49fef1ae6440c182052f407c8d34a68f72efc36db9ca90dc0113398f2fdde8bb \
-    --hash=sha256:5a1f80bf1daa489495071efbb095d75a634cf28a8bc299581244063b53176151
+importlib-metadata==9.0.0 \
+    --hash=sha256:2d21d1cc5a017bd0559e36150c21c830ab1dc304dedd1b7ea85d20f45ef3edd7 \
+    --hash=sha256:a4f57ab599e6a2e3016d7595cfd72eb4661a5106e787a95bcc90c7105b831efc
 importlib-resources==6.5.2 \
     --hash=sha256:185f87adef5bcc288449d98fb4fba07cea78bc036455dd44c5fc4a2fe78fed2c \
     --hash=sha256:789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec
