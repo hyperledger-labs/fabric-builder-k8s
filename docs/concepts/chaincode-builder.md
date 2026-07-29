@@ -8,8 +8,8 @@ External Builders and Launchers are a collection of executables — `detect`, `b
 | ----------- | ----------------------------------------------------------------------------------- |
 | detect      | Detects chaincode packages with a type of `k8s`                                     |
 | build       | Checks that the chaincode label is a valid Kubernetes object label[^1]              |
-| release     | No-op                                                                               |
-| run         | Starts a Kubernetes pod using the chaincode image identified by an immutable digest |
+| release     | Handle any state database index definitions for CouchDB                             |
+| run         | Starts a Kubernetes job using the chaincode image identified by an immutable digest |
 
 [^1]:
     The k8s builder *does not* build the chaincode image.
