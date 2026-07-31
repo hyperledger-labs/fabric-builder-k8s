@@ -1,6 +1,18 @@
-# Sample contracts
+# Samples
 
-The main purpose of these samples is to demonstrate basic `Dockerfile`s for deploying Go, Java, and Node.js chaincode with the k8s builder.
+## Chaincode config
+
+Chaincode can be configured using [MutatingAdmissionPolicies](https://kubernetes.io/docs/reference/access-authn-authz/mutating-admission-policy/) to change the Kubernetes resources that the k8s builder creates.
+
+For example, to add a `mutated: true` label to new chaincode pods:
+
+```shell
+kubectl apply -f add-label.yaml
+```
+
+## Sample contracts
+
+The main purpose of these sample contracts is to demonstrate basic `Dockerfile`s for deploying Go, Java, and Node.js chaincode with the k8s builder.
 
 The samples can be built with:
 
