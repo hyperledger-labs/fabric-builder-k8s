@@ -2,51 +2,63 @@ env CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789
 env FABRIC_K8S_BUILDER_NAMESPACE=$TESTENV_NAMESPACE
 env FABRIC_K8S_BUILDER_DEBUG=true
 
+kubectl apply -f ${SAMPLES_DIR}${/}chaincode-config${/}add-label.yaml
+
+# the MutatingAdmissionPolicyBinding should be created successfully
+kubectl wait --for=create mutatingadmissionpolicybinding add-cc-labels-binding --timeout=30s
+
+kubectl describe mutatingadmissionpolicybindings add-cc-labels-binding
+
+# the MutatingAdmissionPolicy should be created successfully
+kubectl wait --for=create mutatingadmissionpolicy add-cc-labels-policy --timeout=30s
+
+kubectl describe mutatingadmissionpolicies add-cc-labels-policy
+
 # the builder should create a chaincode job
 exec run build_output_dir run_metadata_dir &builder&
 
-jobinfo RUN_CHAINCODE_LABEL 6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45
+jobinfo sample-contract 6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45
 
 # the chaincode job should have the expected name
-stdout -count=1 '^Job name: hlfcc-runchaincodelabel-uyg2zc6uzes7g-[a-z0-9]{5}$'
+stdout -count=1 '^Job name: hlfcc-sample-contract-jvka3ofnsc5i6-[a-z0-9]{5}$'
 
 # the chaincode job should have the expected labels
 stdout -count=1 '^Job label: app\.kubernetes\.io/created-by=fabric-builder-k8s$'
 stdout -count=1 '^Job label: app\.kubernetes\.io/managed-by=fabric-builder-k8s$'
 stdout -count=1 '^Job label: app\.kubernetes\.io/name=hyperledger-fabric$'
 stdout -count=1 '^Job label: fabric-builder-k8s-cchash=N6MMJOZJIFDXCMJO3XI2QE7O6WB56IJBYI24I6LXSLYUDJDNJNCQ$'
-stdout -count=1 '^Job label: fabric-builder-k8s-cclabel=RUN_CHAINCODE_LABEL$'
+stdout -count=1 '^Job label: fabric-builder-k8s-cclabel=sample-contract$'
 stdout -count=1 '^Job label: app\.kubernetes\.io/component=chaincode$'
 
-# the chaincode job should not have been mutated
-! stdout '^Job label: mutated=true$'
+# the chaincode job should have been configured by the MutatingAdmissionPolicy
+stdout -count=1 '^Job label: mutated=true$'
 
 # the chaincode job should have the expected annotations
 stdout -count=1 'Job annotation: fabric-builder-k8s-peerid=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789$'
-stdout -count=1 'Job annotation: fabric-builder-k8s-ccid=RUN_CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45$'
+stdout -count=1 'Job annotation: fabric-builder-k8s-ccid=sample-contract:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45$'
 stdout -count=1 'Job annotation: fabric-builder-k8s-mspid=MSPID$'
 stdout -count=1 'Job annotation: fabric-builder-k8s-peeraddress=PEER_ADDRESS$'
 
 # the chaincode job should start a chaincode pod
-podinfo RUN_CHAINCODE_LABEL 6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45
+podinfo sample-contract 6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45
 
 # the chaincode pod should have the expected name
-stdout -count=1 '^Pod name: hlfcc-runchaincodelabel-uyg2zc6uzes7g-[a-z0-9]{5}-[a-z0-9]{5}$'
+stdout -count=1 '^Pod name: hlfcc-sample-contract-jvka3ofnsc5i6-[a-z0-9]{5}-[a-z0-9]{5}$'
 
 # the chaincode pod should have the expected labels
 stdout -count=1 '^Pod label: app\.kubernetes\.io/created-by=fabric-builder-k8s$'
 stdout -count=1 '^Pod label: app\.kubernetes\.io/managed-by=fabric-builder-k8s$'
 stdout -count=1 '^Pod label: app\.kubernetes\.io/name=hyperledger-fabric$'
 stdout -count=1 '^Pod label: fabric-builder-k8s-cchash=N6MMJOZJIFDXCMJO3XI2QE7O6WB56IJBYI24I6LXSLYUDJDNJNCQ$'
-stdout -count=1 '^Pod label: fabric-builder-k8s-cclabel=RUN_CHAINCODE_LABEL$'
+stdout -count=1 '^Pod label: fabric-builder-k8s-cclabel=sample-contract$'
 stdout -count=1 '^Pod label: app\.kubernetes\.io/component=chaincode$'
 
-# the chaincode pod should not have been mutated
-! stdout '^Pod label: mutated=true$'
+# the chaincode pod should have been configured by the MutatingAdmissionPolicy
+stdout -count=1 '^Pod label: mutated=true$'
 
 # the chaincode pod should have the expected annotations
 stdout -count=1 'Pod annotation: fabric-builder-k8s-peerid=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789$'
-stdout -count=1 'Pod annotation: fabric-builder-k8s-ccid=RUN_CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45$'
+stdout -count=1 'Pod annotation: fabric-builder-k8s-ccid=sample-contract:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45$'
 stdout -count=1 'Pod annotation: fabric-builder-k8s-mspid=MSPID$'
 stdout -count=1 'Pod annotation: fabric-builder-k8s-peeraddress=PEER_ADDRESS$'
 
@@ -60,7 +72,7 @@ kill builder
 
 -- run_metadata_dir/chaincode.json --
 {
-  "chaincode_id": "RUN_CHAINCODE_LABEL:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45",
+  "chaincode_id": "sample-contract:6f98c4bb29414771312eddd1a813eef583df2121c235c4797792f141a46d4b45",
   "peer_address": "PEER_ADDRESS",
   "client_cert": "CLIENT_CERT",
   "client_key": "CLIENT_KEY",

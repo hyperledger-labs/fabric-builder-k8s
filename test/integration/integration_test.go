@@ -28,6 +28,17 @@ func TestRunChaincode(t *testing.T) {
 		}).Feature())
 }
 
+func TestRunMutatedChaincode(t *testing.T) {
+	testenv.Test(t, features.NewWithDescription(t.Name()+"Feature", "the builder should run chaincode in the specified namespace").
+		Assess(t.Name()+"Assessment", func(ctx context.Context, t *testing.T, _ *envconf.Config) context.Context {
+			t.Helper()
+
+			testscript.Run(t, test.NewTestscriptParams(t, "testdata/run_mutated_chaincode.txtar", testenv))
+
+			return ctx
+		}).Feature())
+}
+
 func TestRunChaincodeWithNamePrefix(t *testing.T) {
 	testenv.Test(t, features.NewWithDescription(t.Name()+"Feature", "the builder should run chaincode using kubernetes object names with the specified prefix").
 		Assess(t.Name()+"Assessment", func(ctx context.Context, t *testing.T, _ *envconf.Config) context.Context {
