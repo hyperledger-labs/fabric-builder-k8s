@@ -184,6 +184,17 @@ func podInfoCmd(script *testscript.TestScript, _ bool, args []string) {
 		script.Check(err)
 	}
 
+	// Output DNS configuration
+	_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod DNS policy: %s\n", pod.Spec.DNSPolicy))
+	script.Check(err)
+
+	if pod.Spec.DNSConfig != nil {
+		for _, ns := range pod.Spec.DNSConfig.Nameservers {
+			_, err = script.Stdout().Write(fmt.Appendf(nil, "Pod DNS nameserver: %s\n", ns))
+			script.Check(err)
+		}
+	}
+
 	if pod.Spec.Affinity != nil && pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
 		for _, t := range pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms {
 			for _, e := range t.MatchExpressions {
