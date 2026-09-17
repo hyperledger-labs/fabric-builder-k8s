@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -118,7 +119,11 @@ func waitForChaincodePod(script *testscript.TestScript, cfg *envconf.Config, job
 	return pod
 }
 
-func jobInfoCmd(script *testscript.TestScript, _ bool, args []string) {
+func jobInfoCmd(script *testscript.TestScript, neg bool, args []string) {
+	if neg {
+		script.Fatalf("unsupported: ! jobinfo")
+	}
+
 	if len(args) != jobinfoArgs {
 		script.Fatalf("usage: jobinfo chaincode_label chaincode_hash")
 	}
@@ -148,7 +153,21 @@ func jobInfoCmd(script *testscript.TestScript, _ bool, args []string) {
 	}
 }
 
-func podInfoCmd(script *testscript.TestScript, _ bool, args []string) {
+func kubeCtlCmd(script *testscript.TestScript, neg bool, args []string) {
+	if neg {
+		script.Fatalf("unsupported: ! kubectl")
+	}
+
+	cfg := getConfig(script)
+	err := script.Exec("kubectl", append([]string{"--kubeconfig", cfg.KubeconfigFile()}, args...)...)
+	script.Check(err)
+}
+
+func podInfoCmd(script *testscript.TestScript, neg bool, args []string) {
+	if neg {
+		script.Fatalf("unsupported: ! podinfo")
+	}
+
 	if len(args) != podinfoArgs {
 		script.Fatalf("usage: podinfo chaincode_label chaincode_hash")
 	}
@@ -202,8 +221,14 @@ func podInfoCmd(script *testscript.TestScript, _ bool, args []string) {
 func setupTestscriptEnv(t *testing.T, tsenv *testscript.Env, testenv env.Environment) error {
 	t.Helper()
 
+	samplesDir, err := filepath.Abs(filepath.Join("..", "..", "samples"))
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+
 	tsenv.Setenv("KUBECONFIG_PATH", testenv.EnvConf().KubeconfigFile())
 	tsenv.Setenv("TESTENV_NAMESPACE", testenv.EnvConf().Namespace())
+	tsenv.Setenv("SAMPLES_DIR", samplesDir)
 	tsenv.Values["testenv"] = testenv
 
 	return nil
@@ -221,6 +246,7 @@ func NewTestscriptParams(t *testing.T, scriptfile string, testenv env.Environmen
 		TestWork:            keepWorkDirs,
 		Cmds: map[string]func(ts *testscript.TestScript, neg bool, args []string){
 			"jobinfo": jobInfoCmd,
+			"kubectl": kubeCtlCmd,
 			"podinfo": podInfoCmd,
 		},
 	}
