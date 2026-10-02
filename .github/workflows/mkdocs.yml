@@ -4,10 +4,14 @@ on:
   pull_request:
     branches: ["main"]
     paths:
+      - 'mkdocs.yml'
+      - 'requirements.txt'
       - 'docs/**'
   push:
     branches: ["main"]
     paths:
+      - 'mkdocs.yml'
+      - 'requirements.txt'
       - 'docs/**'
   workflow_dispatch:
 
