@@ -1,0 +1,43 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: add-cc-labels-binding
+spec:
+  policyName: add-cc-labels-policy
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: add-cc-labels-policy
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    resourceRules:
+      - apiGroups:   ["batch"]
+        apiVersions: ["v1"]
+        operations:  ["CREATE"]
+        resources:   ["jobs"]
+      - apiGroups:   [""]
+        apiVersions: ["v1"]
+        operations:  ["CREATE"]
+        resources:   ["pods"]
+  matchConditions:
+    - name: has-created-by-k8s-builder
+      expression: >
+        has(object.metadata.labels) && "app.kubernetes.io/created-by" in object.metadata.labels && object.metadata.labels["app.kubernetes.io/created-by"] == "fabric-builder-k8s"
+    - name: has-k8s-builder-cclabel
+      expression: >
+        has(object.metadata.labels) && "fabric-builder-k8s-cclabel" in object.metadata.labels && object.metadata.labels["fabric-builder-k8s-cclabel"] == "sample-contract"
+  mutations:
+    - patchType: "ApplyConfiguration"
+      applyConfiguration:
+        expression: >
+          Object{
+            metadata: Object.metadata{
+              labels: Object.metadata.labels{
+                mutated: "true"
+              }
+            }
+          }
