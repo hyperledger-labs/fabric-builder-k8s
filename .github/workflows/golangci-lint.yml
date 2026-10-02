@@ -6,12 +6,16 @@ on:
     tags: [ v** ]
     paths-ignore:
       - '*.md'
+      - 'mkdocs.yml'
+      - 'requirements.txt'
       - 'docs/**'
       - 'samples/**'
   pull_request:
     branches: [ main ]
     paths-ignore:
       - '*.md'
+      - 'mkdocs.yml'
+      - 'requirements.txt'
       - 'docs/**'
       - 'samples/**'
 

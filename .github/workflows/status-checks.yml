@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - '*.md'
+      - 'mkdocs.yml'
+      - 'requirements.txt'
       - 'docs/**'
       - 'samples/**'
 
