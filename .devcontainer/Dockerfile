@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/go:1.26-bookworm@sha256:c249440b024e82a569726ab41e60400237665d1f259fb575fd707b04b1b44e55
+FROM mcr.microsoft.com/devcontainers/go:1.26-bookworm@sha256:704b4ff0d81015af615bc2ba7659f204c89bb1ebfb9256263115680b0ed9e3fa
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /etc/apt/keyrings/yarn-archive-keyring.gpg > /dev/null \
   && echo "deb [signed-by=/etc/apt/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
