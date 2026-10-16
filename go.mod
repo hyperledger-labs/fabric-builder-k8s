@@ -3,7 +3,7 @@ module github.com/hyperledger-labs/fabric-builder-k8s
 go 1.26.8
 
 require (
-	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/onsi/gomega v1.44.0
 	github.com/otiai10/copy v1.14.1
 	github.com/rogpeppe/go-internal v1.16.0
