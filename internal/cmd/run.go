@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"context"
+	"math"
 	"os"
 	"time"
 
@@ -114,6 +115,27 @@ func getChaincodeStartTimeout(logger *log.CmdLogger) (chaincodeStartTimeoutDurat
 	return chaincodeStartTimeoutDuration, true
 }
 
+//nolint:nonamedreturns // using the ok bool convention to indicate errors
+func getChaincodeJobTTL(logger *log.CmdLogger) (chaincodeJobTTLDuration time.Duration, ok bool) {
+	chaincodeJobTTL := util.GetOptionalEnv(util.ChaincodeJobTTLVariable, util.DefaultJobTTL)
+	logger.Debugf("%s=%s", util.ChaincodeJobTTLVariable, chaincodeJobTTL)
+
+	chaincodeJobTTLDuration, err := time.ParseDuration(chaincodeJobTTL)
+	if err != nil {
+		logger.Printf("The %s environment variable must be a valid Go duration string, e.g. 5m: %v", util.ChaincodeJobTTLVariable, err)
+
+		return 0, false
+	}
+
+	if chaincodeJobTTLDuration < 0 || chaincodeJobTTLDuration/time.Second > math.MaxInt32 {
+		logger.Printf("The %s environment variable must not be negative and must not exceed %d seconds", util.ChaincodeJobTTLVariable, math.MaxInt32)
+
+		return 0, false
+	}
+
+	return chaincodeJobTTLDuration, true
+}
+
 func Run() {
 	const (
 		expectedArgsLength      = 3
@@ -165,6 +187,11 @@ func Run() {
 		os.Exit(1)
 	}
 
+	chaincodeJobTTL, ok := getChaincodeJobTTL(logger)
+	if !ok {
+		os.Exit(1)
+	}
+
 	run := &builder.Run{
 		BuildOutputDirectory:  buildOutputDirectory,
 		RunMetadataDirectory:  runMetadataDirectory,
@@ -175,6 +202,7 @@ func Run() {
 		KubeServiceAccount:    kubeServiceAccount,
 		KubeNamePrefix:        kubeNamePrefix,
 		ChaincodeStartTimeout: chaincodeStartTimeout,
+		ChaincodeJobTTL:       chaincodeJobTTL,
 	}
 
 	if err := run.Run(ctx); err != nil {

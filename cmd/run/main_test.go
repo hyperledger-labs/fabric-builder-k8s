@@ -109,4 +109,26 @@ var _ = Describe("Main", func() {
 		Entry("When the FABRIC_K8S_BUILDER_START_TIMEOUT is missing a duration unit", "3", `run \[\d+\]: The FABRIC_K8S_BUILDER_START_TIMEOUT environment variable must be a valid Go duration string, e\.g\. 3m40s: time: missing unit in duration "3"`),
 		Entry("When the FABRIC_K8S_BUILDER_START_TIMEOUT is not a valid duration string", "three minutes", `run \[\d+\]: The FABRIC_K8S_BUILDER_START_TIMEOUT environment variable must be a valid Go duration string, e\.g\. 3m40s: time: invalid duration "three minutes"`),
 	)
+
+	DescribeTable("Running the run command produces the correct error for invalid FABRIC_K8S_BUILDER_CHAINCODE_JOB_TTL environment variable values",
+		func(chaincodeJobTTLValue, expectedErrorMessage string) {
+			args := []string{"BUILD_OUTPUT_DIR", "RUN_METADATA_DIR"}
+			command := exec.Command(runCmdPath, args...)
+
+			command.Env = append(os.Environ(),
+				"CORE_PEER_ID=core-peer-id-abcdefghijklmnopqrstuvwxyz-0123456789",
+				"FABRIC_K8S_BUILDER_CHAINCODE_JOB_TTL="+chaincodeJobTTLValue,
+			)
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(session).Should(gexec.Exit(1))
+			Eventually(
+				session.Err,
+			).Should(gbytes.Say(expectedErrorMessage))
+		},
+		Entry("When the FABRIC_K8S_BUILDER_CHAINCODE_JOB_TTL is missing a duration unit", "5", `run \[\d+\]: The FABRIC_K8S_BUILDER_CHAINCODE_JOB_TTL environment variable must be a valid Go duration string, e\.g\. 5m: time: missing unit in duration "5"`),
+		Entry("When the FABRIC_K8S_BUILDER_CHAINCODE_JOB_TTL is not a valid duration string", "five minutes", `run \[\d+\]: The FABRIC_K8S_BUILDER_CHAINCODE_JOB_TTL environment variable must be a valid Go duration string, e\.g\. 5m: time: invalid duration "five minutes"`),
+		Entry("When the FABRIC_K8S_BUILDER_CHAINCODE_JOB_TTL is negative", "-1m", `run \[\d+\]: The FABRIC_K8S_BUILDER_CHAINCODE_JOB_TTL environment variable must not be negative`),
+	)
 })
