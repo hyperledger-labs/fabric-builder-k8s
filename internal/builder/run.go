@@ -21,6 +21,7 @@ type Run struct {
 	KubeServiceAccount    string
 	KubeNamePrefix        string
 	ChaincodeStartTimeout time.Duration
+	ChaincodeJobTTL       time.Duration
 }
 
 func (r *Run) Run(ctx context.Context) error {
@@ -80,6 +81,7 @@ func (r *Run) Run(ctx context.Context) error {
 		r.PeerID,
 		chaincodeData,
 		imageData,
+		r.ChaincodeJobTTL,
 	)
 	if err != nil {
 		return err

@@ -35,7 +35,6 @@ const (
 	fabricBuilderK8s string = "fabric-builder-k8s"
 
 	namespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-	jobTTL        = 5 * time.Minute
 
 	ObjectNameSuffixLength int = 5
 
@@ -44,6 +43,7 @@ const (
 	DefaultObjectNamePrefix   string = "hlfcc"
 	DefaultServiceAccountName string = "default"
 	DefaultStartTimeout       string = "3m"
+	DefaultJobTTL             string = "5m"
 
 	// Mutual TLS auth client key and cert paths in the chaincode container.
 	TLSClientKeyPath      string = "/etc/hyperledger/fabric/client.key"
@@ -272,6 +272,7 @@ func getChaincodeJobSpec(
 	imageData *ImageJSON,
 	namespace, serviceAccount, objectName, peerID string,
 	chaincodeData *ChaincodeJSON,
+	jobTTL time.Duration,
 ) (*batchv1.Job, error) {
 	chaincodeImage := imageData.Name + "@" + imageData.Digest
 
@@ -434,6 +435,7 @@ func CreateChaincodeJob(
 	objectName, namespace, serviceAccount, nodeRole, peerID string,
 	chaincodeData *ChaincodeJSON,
 	imageData *ImageJSON,
+	jobTTL time.Duration,
 ) (*batchv1.Job, error) {
 	jobDefinition, err := getChaincodeJobSpec(
 		imageData,
@@ -442,6 +444,7 @@ func CreateChaincodeJob(
 		objectName,
 		peerID,
 		chaincodeData,
+		jobTTL,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error getting chaincode job definition for chaincode ID %s: %w", chaincodeData.ChaincodeID, err)
